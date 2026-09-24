@@ -1,0 +1,13 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+# Dependencies / generated output
+node_modules/
+dist/
+coverage/
+# Logs / local files
+*.log
+.DS_Store
+Thumbs.db
+.idea/
