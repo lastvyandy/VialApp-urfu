@@ -64,3 +64,62 @@ async def login(
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+
+@router.get("/me/tests")
+async def get_my_test_history(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = (
+        select(TestResult)
+        .where(TestResult.user_id == current_user.id)
+        .options(selectinload(TestResult.exam))
+        .order_by(TestResult.fecha.desc())
+    )
+    result = await db.execute(stmt)
+    history = result.scalars().all()
+
+    return [
+        {
+            "id": r.id,
+            "test_id": r.test_id,
+            "nombre_test": r.exam.nombre if r.exam else f"Examen #{r.test_id}",
+            "clase_licencia": r.exam.clase_licencia if r.exam else "Clase B",
+            "categoria": r.exam.categoria if r.exam else "Mixto",
+            "correctas": r.correctas,
+            "total_preguntas": r.total_preguntas,
+            "puntaje": r.puntaje,
+            "fecha": r.fecha,
+        }
+        for r in history
+    ]
+
+@router.get("/me/tests/{result_id}")
+async def get_my_test_result_detail(
+    result_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = (
+        select(TestResult)
+        .where(TestResult.id == result_id, TestResult.user_id == current_user.id)
+        .options(selectinload(TestResult.exam))
+    )
+    result = await db.execute(stmt)
+    r = result.scalar_one_or_none()
+    if not r:
+        raise HTTPException(status_code=404, detail="Resultado no encontrado")
+
+    return {
+        "id": r.id,
+        "test_id": r.test_id,
+        "nombre_test": r.exam.nombre if r.exam else f"Examen #{r.test_id}",
+        "clase_licencia": r.exam.clase_licencia if r.exam else "Clase B",
+        "correctas": r.correctas,
+        "total_preguntas": r.total_preguntas,
+        "puntaje": r.puntaje,
+        "fecha": r.fecha,
+        "detalles": r.detalles,
+    }

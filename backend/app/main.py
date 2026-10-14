@@ -6,6 +6,7 @@ from app.core.database import engine, Base
 import app.models.models  # noqa: F401
 from app.seed import seed_database
 from app.api.routes_users import router as users_router
+from app.api.routes_tests import router as tests_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(users_router)
+app.include_router(tests_router)
 
 @app.get("/")
 async def root():
