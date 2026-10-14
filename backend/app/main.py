@@ -3,13 +3,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
-import app.models.models  # noqa: F401 - Registra los modelos en Base.metadata
+import app.models.models  # noqa: F401
+from app.seed import seed_database
+from app.api.routes_users import router as users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Crear tablas automáticamente en SQLite al iniciar el contenedor
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    await seed_database()
     yield
 
 app = FastAPI(
@@ -25,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(users_router)
 
 @app.get("/")
 async def root():
