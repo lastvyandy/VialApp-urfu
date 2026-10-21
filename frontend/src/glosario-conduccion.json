@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "titulo": "Glosario de Conducción – Licencia Clase B",
+    "fuente": "Basado en el Libro para la Conducción en Chile, CONASET (actualización agosto 2024)",
+    "url_fuente": "https://mejoresconductores.conaset.cl/assets/data/pdf/B-ESP/Libro_para_la_conduccion_en_Chile_Clase%20B_actualizacion_6_de_agosto_2024.pdf",
+    "version": "1.0",
+    "fecha": "2024"
+  },
+  "terminos": [
+    {
+      "id": 1,
+      "termino": "Siniestro de tránsito",
+      "categoria": "Seguridad vial",
+      "definicion": "Evento en la vía pública que genera daños a personas, vehículos o bienes, y que no debe considerarse un hecho azaroso o casual, sino que tiene causas identificables y prevenibles. Se prefiere este término en lugar de 'accidente' para destacar la responsabilidad de quienes participan en el tránsito."
+    },
+    {
+      "id": 2,
+      "termino": "Sistema Seguro",
+      "categoria": "Seguridad vial",
+      "definicion": "Enfoque de seguridad vial que reconoce que los seres humanos cometen errores, y por ello el sistema de tránsito (vías, vehículos, normas, velocidades) debe estar diseñado para que esos errores no resulten en muertes o lesiones graves. Es el marco de la política nacional de tránsito en Chile desde 2017."
+    },
+    {
+      "id": 3,
+      "termino": "Visión Cero",
+      "categoria": "Seguridad vial",
+      "definicion": "Principio ético internacional que establece que ninguna muerte o lesión grave en el tránsito es aceptable. Es la meta última del enfoque de Sistema Seguro, promovido por países líderes en seguridad de tránsito."
+    },
+    {
+      "id": 4,
+      "termino": "Conducción defensiva",
+      "categoria": "Conducción segura",
+      "definicion": "Estilo de conducción que busca anticipar situaciones de riesgo en la vía, reducir la probabilidad de siniestros y proteger tanto al conductor como a los demás usuarios, adaptando la velocidad y el comportamiento a las condiciones del entorno."
+    },
+    {
+      "id": 5,
+      "termino": "Distancia de seguridad",
+      "categoria": "Conducción segura",
+      "definicion": "Espacio mínimo que debe mantenerse entre el vehículo propio y el que va adelante, suficiente para frenar sin colisionar en caso de una detención brusca. Varía según la velocidad, las condiciones del camino y el estado del vehículo."
+    },
+    {
+      "id": 6,
+      "termino": "Distancia de frenado",
+      "categoria": "Conducción segura",
+      "definicion": "Espacio que recorre un vehículo desde el momento en que se aplican los frenos hasta que se detiene completamente. Aumenta considerablemente con la velocidad y con superficies húmedas o en mal estado."
+    },
+    {
+      "id": 7,
+      "termino": "Distancia de reacción",
+      "categoria": "Conducción segura",
+      "definicion": "Espacio que recorre el vehículo desde que el conductor percibe un peligro hasta que aplica los frenos. Depende del tiempo de reacción de la persona, que puede verse afectado por el cansancio, el alcohol, el uso de fármacos u otras distracciones."
+    },
+    {
+      "id": 8,
+      "termino": "Tiempo de reacción",
+      "categoria": "Conducción segura",
+      "definicion": "Tiempo que transcurre entre que el conductor percibe una situación de peligro y realiza la acción correctiva (como frenar o esquivar). El promedio es de aproximadamente 1 segundo en condiciones normales, pero puede aumentar significativamente bajo el efecto del alcohol, medicamentos o fatiga."
+    },
+    {
+      "id": 9,
+      "termino": "Motor",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Componente principal del vehículo que genera la energía necesaria para su movimiento. Puede funcionar con gasolina, diésel, gas o electricidad. Generalmente se ubica en la parte delantera del automóvil."
+    },
+    {
+      "id": 10,
+      "termino": "Tacómetro",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Instrumento del panel de mandos que indica la velocidad de giro del motor expresada en revoluciones por minuto (RPM). Permite al conductor saber cuándo cambiar de marcha para optimizar el rendimiento y el consumo."
+    },
+    {
+      "id": 11,
+      "termino": "Velocímetro",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Instrumento del panel de mandos que muestra la velocidad instantánea del vehículo, generalmente en kilómetros por hora (km/h). Es fundamental para respetar los límites de velocidad establecidos."
+    },
+    {
+      "id": 12,
+      "termino": "Odómetro",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Instrumento que registra la distancia total o parcial recorrida por el vehículo. Útil para planificar mantenciones periódicas según el kilometraje indicado por el fabricante."
+    },
+    {
+      "id": 13,
+      "termino": "Sistema de lubricación",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Sistema que distribuye aceite a presión en las partes móviles del motor para reducir la fricción y el desgaste. Si el nivel de aceite es insuficiente, se enciende en el tablero el testigo de presión de aceite, lo que exige detener el vehículo de inmediato."
+    },
+    {
+      "id": 14,
+      "termino": "Sistema eléctrico",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Conjunto de componentes que proveen energía eléctrica a todos los sistemas del vehículo. Incluye la batería, el alternador (que convierte energía mecánica en eléctrica) y los fusibles que protegen los circuitos."
+    },
+    {
+      "id": 15,
+      "termino": "Alternador",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Dispositivo que transforma la energía mecánica del motor en energía eléctrica para cargar la batería y alimentar los sistemas eléctricos del vehículo mientras está en marcha."
+    },
+    {
+      "id": 16,
+      "termino": "Sistema de refrigeración",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Sistema que regula la temperatura del motor manteniéndolo dentro de rangos seguros de operación. Utiliza un líquido refrigerante (agua destilada más anticongelante) que circula por el motor y el radiador. Si falla, la temperatura del motor sube peligrosamente."
+    },
+    {
+      "id": 17,
+      "termino": "Sistema de escape",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Conjunto de componentes que expulsan al exterior los gases generados durante la combustión del motor. Entre estos gases se encuentra el monóxido de carbono, un gas tóxico, incoloro e inodoro que puede ser mortal si penetra en el habitáculo."
+    },
+    {
+      "id": 18,
+      "termino": "Monóxido de carbono",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Gas venenoso, incoloro e inodoro producido por la combustión incompleta del motor. Puede filtrarse al interior del vehículo si el sistema de escape está dañado. Los primeros síntomas de intoxicación son dolor de cabeza y náuseas."
+    },
+    {
+      "id": 19,
+      "termino": "Transmisión",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Sistema que transfiere la potencia del motor hacia las ruedas. Incluye el embrague y la caja de cambios. Puede ser manual (con pedal de embrague y palanca de cambios) o automática."
+    },
+    {
+      "id": 20,
+      "termino": "Embrague",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Mecanismo accionado mediante un pedal que permite conectar o desconectar la transmisión de potencia entre el motor y las ruedas, necesario para cambiar de marcha en vehículos de caja manual. Presionarlo por tiempo prolongado reduce el control sobre el vehículo."
+    },
+    {
+      "id": 21,
+      "termino": "Caja de cambios",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Mecanismo que permite seleccionar diferentes relaciones de transmisión entre el motor y las ruedas, ajustando la fuerza y la velocidad de acuerdo a las condiciones de la marcha. Puede ser manual o automática."
+    },
+    {
+      "id": 22,
+      "termino": "Servodirección",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Sistema auxiliar de la dirección que reduce el esfuerzo físico necesario para girar el volante, mejorando la maniobrabilidad del vehículo especialmente a bajas velocidades."
+    },
+    {
+      "id": 23,
+      "termino": "Suspensión",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Sistema que mantiene el contacto permanente entre los neumáticos y la calzada, absorbiendo las irregularidades del terreno y garantizando la estabilidad del vehículo durante la conducción."
+    },
+    {
+      "id": 24,
+      "termino": "Amortiguadores",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Componentes del sistema de suspensión que controlan el movimiento oscilante del vehículo sobre el camino. Cuando están en mal estado, el vehículo se inclina excesivamente en curvas, los neumáticos se desgastan de forma irregular y las luces oscilan al circular de noche."
+    },
+    {
+      "id": 25,
+      "termino": "Neumático",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Cubierta de goma que rodea la llanta y es el único punto de contacto del vehículo con la calzada. Su estado y presión de inflado influyen directamente en la adherencia, el frenado y el control del vehículo."
+    },
+    {
+      "id": 26,
+      "termino": "ABS (Sistema antibloqueo de frenos)",
+      "categoria": "Elementos de seguridad",
+      "definicion": "Sistema electrónico que impide que las ruedas se bloqueen durante una frenada de emergencia, permitiendo que el conductor mantenga el control de la dirección del vehículo mientras frena. Es especialmente útil en superficies mojadas o resbaladizas."
+    },
+    {
+      "id": 27,
+      "termino": "Airbag",
+      "categoria": "Elementos de seguridad",
+      "definicion": "Bolsa de aire que se infla de forma instantánea ante un impacto severo para proteger a los ocupantes del golpe contra el volante, el tablero u otras partes del vehículo. No reemplaza al cinturón de seguridad; ambos sistemas son complementarios."
+    },
+    {
+      "id": 28,
+      "termino": "Cinturón de seguridad",
+      "categoria": "Elementos de seguridad",
+      "definicion": "Dispositivo de retención que mantiene al ocupante en su asiento durante una colisión, reduciendo significativamente el riesgo de lesiones graves o muerte. Su uso es obligatorio para todos los ocupantes del vehículo en todos los asientos."
+    },
+    {
+      "id": 29,
+      "termino": "Sistema de Retención Infantil (SRI)",
+      "categoria": "Elementos de seguridad",
+      "definicion": "Silla o dispositivo especialmente diseñado para proteger a niños y niñas durante el transporte en vehículos. Deben usarse hasta que el niño alcance la talla y el peso adecuados para usar el cinturón de seguridad estándar."
+    },
+    {
+      "id": 30,
+      "termino": "Testigos del tablero",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Luces indicadoras en el panel de instrumentos que informan sobre el estado de los sistemas del vehículo. Los verdes indican funcionamiento normal, los amarillos advierten de un posible problema a revisar, y los rojos señalan una avería grave que requiere atención inmediata."
+    },
+    {
+      "id": 31,
+      "termino": "Fusible",
+      "categoria": "Mecánica del vehículo",
+      "definicion": "Dispositivo de protección del circuito eléctrico que se funde cuando la corriente supera un nivel seguro, evitando incendios o daños mayores. Si algún componente eléctrico deja de funcionar, lo primero que se debe revisar es si se ha quemado un fusible."
+    },
+    {
+      "id": 32,
+      "termino": "Zona urbana",
+      "categoria": "Normas de circulación",
+      "definicion": "Área dentro de los límites de una ciudad o localidad, con calles, intersecciones y señalización propia de un entorno poblado. Concentra aproximadamente el 80% de los siniestros de tránsito en Chile, aunque generalmente con menor gravedad que los ocurridos en carreteras."
+    },
+    {
+      "id": 33,
+      "termino": "Zona rural o interurbana",
+      "categoria": "Normas de circulación",
+      "definicion": "Área fuera de los límites urbanos, que incluye carreteras y autopistas. Aunque concentra solo el 20% de los siniestros, en ella se produce la mayor cantidad de personas fallecidas debido a las altas velocidades involucradas."
+    },
+    {
+      "id": 34,
+      "termino": "Señal de tránsito",
+      "categoria": "Normas de circulación",
+      "definicion": "Elemento físico instalado en la vía pública que entrega información, advertencias, prohibiciones u órdenes a los usuarios del tránsito mediante colores, formas y símbolos estandarizados."
+    },
+    {
+      "id": 35,
+      "termino": "Velocidad máxima permitida",
+      "categoria": "Normas de circulación",
+      "definicion": "Límite legal de velocidad que no puede superarse en una vía determinada. En zonas urbanas generalmente es de 50 km/h, y en zonas de escuelas o zonas residenciales puede ser menor. En carreteras varía según la vía y la señalización."
+    },
+    {
+      "id": 36,
+      "termino": "Adelantamiento",
+      "categoria": "Normas de circulación",
+      "definicion": "Maniobra de sobrepasar a otro vehículo que circula en el mismo sentido. Requiere visibilidad suficiente, velocidad adecuada, señalización con intermitente y asegurarse de que no haya vehículos en sentido contrario. Está prohibido en zonas de línea continua."
+    },
+    {
+      "id": 37,
+      "termino": "Derecho de preferencia",
+      "categoria": "Normas de circulación",
+      "definicion": "Norma que establece qué vehículo o peatón tiene prioridad de paso en una intersección o situación determinada. En ausencia de señalización, generalmente tiene preferencia quien viene por la derecha."
+    },
+    {
+      "id": 38,
+      "termino": "Estacionamiento",
+      "categoria": "Normas de circulación",
+      "definicion": "Acción de detener y dejar el vehículo en un lugar determinado por un período de tiempo. Está regulado por señales y marcas viales que indican dónde está permitido, prohibido o restringido estacionar."
+    },
+    {
+      "id": 39,
+      "termino": "Fuerza centrífuga",
+      "categoria": "Física aplicada a la conducción",
+      "definicion": "Fuerza que tiende a desplazar el vehículo hacia afuera de la curva durante el giro. Aumenta con la velocidad y es una de las principales causas de salida de la calzada en curvas, especialmente en pavimento mojado."
+    },
+    {
+      "id": 40,
+      "termino": "Fuerza de inercia",
+      "categoria": "Física aplicada a la conducción",
+      "definicion": "Tendencia de los cuerpos a mantener su estado de movimiento o reposo. Al frenar bruscamente, los ocupantes del vehículo son empujados hacia adelante debido a la inercia, de ahí la importancia del cinturón de seguridad."
+    },
+    {
+      "id": 41,
+      "termino": "Adherencia",
+      "categoria": "Física aplicada a la conducción",
+      "definicion": "Capacidad de los neumáticos de mantener contacto y agarre con la superficie de la calzada. Se ve reducida por pavimento mojado, barro, hielo o neumáticos desgastados, aumentando las distancias de frenado y el riesgo de pérdida de control."
+    },
+    {
+      "id": 42,
+      "termino": "Aquaplaning",
+      "categoria": "Conducción en condiciones difíciles",
+      "definicion": "Fenómeno que ocurre cuando el vehículo circula sobre una capa de agua a alta velocidad y los neumáticos pierden contacto con el asfalto, flotando sobre el agua. Se pierde el control de dirección y frenado. Para evitarlo se debe reducir la velocidad en pavimento mojado."
+    },
+    {
+      "id": 43,
+      "termino": "Conducción nocturna",
+      "categoria": "Conducción en condiciones difíciles",
+      "definicion": "Conducción realizada durante la noche o en condiciones de escasa visibilidad. Exige mayor atención y el uso correcto de las luces del vehículo. Estadísticamente concentra una alta proporción de siniestros graves pese al menor flujo vehicular."
+    },
+    {
+      "id": 44,
+      "termino": "Fatiga al volante",
+      "categoria": "Factores humanos",
+      "definicion": "Estado de agotamiento físico y mental que reduce la capacidad de conducir con seguridad. Afecta la atención, el tiempo de reacción y la toma de decisiones. Es una de las principales causas de siniestros en carretera, especialmente en trayectos largos."
+    },
+    {
+      "id": 45,
+      "termino": "Microsueño",
+      "categoria": "Factores humanos",
+      "definicion": "Episodio involuntario de sueño de muy corta duración (2 a 30 segundos) que puede ocurrir al conducir en estado de fatiga extrema. Es extremadamente peligroso porque el conductor pierde el control del vehículo sin darse cuenta."
+    },
+    {
+      "id": 46,
+      "termino": "Conducción bajo los efectos del alcohol",
+      "categoria": "Factores humanos",
+      "definicion": "Conducción realizada cuando el conductor supera los límites legales de alcohol en la sangre. El alcohol reduce los reflejos, altera la percepción de la velocidad y la distancia, y genera una falsa sensación de seguridad. Es una de las principales causas de siniestros graves en Chile."
+    },
+    {
+      "id": 47,
+      "termino": "Usuario vulnerable",
+      "categoria": "Convivencia vial",
+      "definicion": "Persona usuaria de la vía que, por su exposición y menor protección, tiene mayor riesgo de sufrir lesiones graves en un siniestro de tránsito. Incluye principalmente a peatones, ciclistas, motociclistas y personas con movilidad reducida."
+    },
+    {
+      "id": 48,
+      "termino": "Peatón",
+      "categoria": "Convivencia vial",
+      "definicion": "Persona que circula a pie por la vía pública. Es el usuario más vulnerable del tránsito. La probabilidad de que un peatón muera al ser atropellado se multiplica por ocho cuando la velocidad del vehículo sube de 30 a 50 km/h."
+    },
+    {
+      "id": 49,
+      "termino": "Conducción eficiente",
+      "categoria": "Conducción sostenible",
+      "definicion": "Estilo de conducción que busca reducir el consumo de combustible y las emisiones contaminantes mediante técnicas como anticipar las situaciones del tráfico, mantener velocidades estables, evitar aceleraciones y frenadas bruscas, y usar adecuadamente las marchas."
+    },
+    {
+      "id": 50,
+      "termino": "Vehículo eléctrico",
+      "categoria": "Conducción sostenible",
+      "definicion": "Automóvil que utiliza energía eléctrica almacenada en baterías para mover el motor, sin emisión de gases contaminantes durante su funcionamiento. Requiere consideraciones especiales en cuanto a autonomía, recarga y comportamiento del motor."
+    }
+  ]
+}

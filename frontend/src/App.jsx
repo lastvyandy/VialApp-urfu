@@ -4,8 +4,12 @@ import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
+import ExamsListPage from './pages/ExamsListPage';
 import ExamPage from './pages/ExamPage';
 import HistoryPage from './pages/HistoryPage';
+import GlossaryPage from './pages/GlossaryPage';
+import ProfilePage from './pages/ProfilePage';
+import AdminPage from './pages/AdminPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -32,6 +36,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/examenes"
+                element={
+                  <PrivateRoute>
+                    <ExamsListPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
                 path="/test/:testId"
                 element={
                   <PrivateRoute>
@@ -44,6 +56,30 @@ export default function App() {
                 element={
                   <PrivateRoute>
                     <HistoryPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/glosario"
+                element={
+                  <PrivateRoute>
+                    <GlossaryPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/perfil"
+                element={
+                  <PrivateRoute>
+                    <ProfilePage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <PrivateRoute>
+                    <AdminPage />
                   </PrivateRoute>
                 }
               />
