@@ -8,11 +8,14 @@ import {
   LogOut,
   Crown,
   Sparkles,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { lang, toggleLang, tr } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,10 +25,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: 'Inicio', path: '/' },
-    { name: 'Exámenes', path: '/examenes', icon: FileText },
-    { name: 'Glosario', path: '/glosario', icon: BookOpen },
-    { name: 'Historial', path: '/historial', icon: History },
+    { name: tr('Inicio', 'Home'), path: '/' },
+    { name: tr('Exámenes', 'Exams'), path: '/examenes', icon: FileText },
+    { name: tr('Glosario', 'Glossary'), path: '/glosario', icon: BookOpen },
+    { name: tr('Historial', 'History'), path: '/historial', icon: History },
   ];
 
   return (
@@ -43,13 +46,14 @@ export default function Navbar() {
                 CHILE
               </span>
             </div>
-            <p className="text-[10px] font-semibold text-[#6C7B90]">Simulador CONASET</p>
+            <p className="text-[10px] font-semibold text-[#6C7B90]">
+              {tr('Simulador CONASET', 'CONASET Simulator')}
+            </p>
           </div>
         </Link>
 
         {user ? (
-          <div className="flex items-center gap-2 sm:gap-5">
-            {/* Links de navegación */}
+          <div className="flex items-center gap-2 sm:gap-4">
             <nav className="flex items-center gap-1 sm:gap-1.5">
               {navLinks.map(({ name, path, icon: Icon }) => {
                 const isActive = location.pathname === path;
@@ -57,7 +61,7 @@ export default function Navbar() {
                   <Link
                     key={path}
                     to={path}
-                    className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition-all ${
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-black transition-all ${
                       isActive
                         ? 'bg-[#2457D6] text-white shadow-xs'
                         : 'text-[#516B88] hover:bg-[#F4F7FF] hover:text-[#2457D6]'
@@ -69,10 +73,9 @@ export default function Navbar() {
                 );
               })}
 
-              {/* Botón de Planes / Upgrade */}
               <Link
                 to="/planes"
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition ${
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-black transition ${
                   location.pathname === '/planes'
                     ? 'bg-amber-500 text-white shadow-xs'
                     : user.is_premium
@@ -81,13 +84,17 @@ export default function Navbar() {
                 }`}
               >
                 <Crown className="h-3.5 w-3.5" />
-                <span>{user.is_premium ? 'Mi Plan' : 'Hazte Premium'}</span>
+                <span>
+                  {user.is_premium
+                    ? tr('Mi Plan', 'My Plan')
+                    : tr('Hazte Premium', 'Go Premium')}
+                </span>
               </Link>
 
               {user.is_admin && (
                 <Link
                   to="/admin"
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition ${
+                  className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-black transition ${
                     location.pathname === '/admin'
                       ? 'bg-purple-600 text-white shadow-xs'
                       : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
@@ -99,8 +106,18 @@ export default function Navbar() {
               )}
             </nav>
 
-            {/* Menú de Perfil & Salir */}
-            <div className="flex items-center gap-2 border-l border-slate-200 pl-3 sm:pl-4">
+            <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
+              {/* Toggle Idioma */}
+              <button
+                type="button"
+                onClick={toggleLang}
+                className="inline-flex items-center gap-1 rounded-xl border border-[#C7D8FA] bg-[#F4F7FF] px-2.5 py-1.5 text-xs font-black text-[#2457D6] hover:bg-[#EAF1FF] transition"
+                title={tr('Cambiar a Inglés', 'Switch to Spanish')}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span>{lang.toUpperCase()}</span>
+              </button>
+
               <Link
                 to="/perfil"
                 className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold transition ${
@@ -108,14 +125,17 @@ export default function Navbar() {
                     ? 'bg-[#EAF1FF] text-[#2457D6]'
                     : 'text-[#173B63] hover:bg-slate-100'
                 }`}
-                title="Mi Perfil"
+                title={tr('Mi Perfil', 'My Profile')}
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2457D6] text-white text-[11px] font-black">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
                 <span className="hidden md:inline font-black">{user.username}</span>
                 {user.is_premium && (
-                  <Crown className="h-3.5 w-3.5 text-amber-500" title="Cuenta Premium" />
+                  <Crown
+                    className="h-3.5 w-3.5 text-amber-500"
+                    title={tr('Cuenta Premium', 'Premium Account')}
+                  />
                 )}
               </Link>
 
@@ -123,33 +143,45 @@ export default function Navbar() {
                 type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-1 rounded-xl border border-slate-200 p-2 text-xs font-bold text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
-                title="Cerrar sesión"
+                title={tr('Cerrar sesión', 'Log out')}
               >
                 <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* Toggle Idioma Visitantes */}
+            <button
+              type="button"
+              onClick={toggleLang}
+              className="inline-flex items-center gap-1 rounded-xl border border-[#C7D8FA] bg-[#F4F7FF] px-2.5 py-2 text-xs font-black text-[#2457D6] hover:bg-[#EAF1FF] transition"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              <span>{lang.toUpperCase()}</span>
+            </button>
+
             <Link
               to="/glosario"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-[#516B88] hover:text-[#2457D6]"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              <span>Glosario</span>
+              <span>{tr('Glosario', 'Glossary')}</span>
             </Link>
+
             <Link
               to="/login"
-              className="rounded-xl border border-[#C7D8FA] bg-white px-4 py-2 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
+              className="rounded-xl border border-[#C7D8FA] bg-white px-3.5 py-2 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
             >
-              Iniciar Sesión
+              {tr('Iniciar Sesión', 'Sign In')}
             </Link>
+
             <Link
               to="/register"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2457D6] px-4 py-2 text-xs font-black text-white shadow-xs hover:bg-blue-700 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2457D6] px-3.5 py-2 text-xs font-black text-white shadow-xs hover:bg-blue-700 transition"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Crear Cuenta Gratis</span>
+              <span>{tr('Crear Cuenta Gratis', 'Free Sign Up')}</span>
             </Link>
           </div>
         )}

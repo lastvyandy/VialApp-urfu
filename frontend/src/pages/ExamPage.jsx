@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Repeat,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import { apiFetch } from '../api';
 
 export default function ExamPage() {
@@ -19,6 +20,7 @@ export default function ExamPage() {
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'study' ? 'study' : 'exam';
   const navigate = useNavigate();
+  const { tr, trCategory, trLicense, trExamName } = useLanguage();
 
   const [exam, setExam] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -31,12 +33,10 @@ export default function ExamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Modo actual y práctica de errores
   const [currentMode, setCurrentMode] = useState(initialMode);
   const [isErrorPractice, setIsErrorPractice] = useState(false);
   const originalQuestionsRef = useRef([]);
 
-  // Temporizador regresivo
   const [timeLeft, setTimeLeft] = useState(45 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const timerRef = useRef(null);
@@ -49,7 +49,6 @@ export default function ExamPage() {
         const qs = data.questions || [];
         setQuestions(qs);
         originalQuestionsRef.current = qs;
-        // 15 min para tests express (<=15 preg), 45 min para exámenes oficiales
         const totalDuration = qs.length <= 15 ? 15 * 60 : 45 * 60;
         setTimeLeft(totalDuration);
       })
@@ -78,7 +77,12 @@ export default function ExamPage() {
   }, [currentMode, resultData, reviewMode, loading, isErrorPractice]);
 
   const handleTimeExpired = async () => {
-    alert('⏱️ El tiempo ha finalizado. Tu examen se calificará con las respuestas marcadas.');
+    alert(
+      tr(
+        '⏱️ El tiempo ha finalizado. Tu examen se calificará con las respuestas marcadas.',
+        '⏱️ Time is up! Your exam will be graded with your selected answers.'
+      )
+    );
     await handleSubmitExam();
   };
 
@@ -89,13 +93,17 @@ export default function ExamPage() {
   };
 
   if (loading) {
-    return <div className="p-10 text-center text-sm font-bold">Cargando simulación...</div>;
+    return (
+      <div className="p-10 text-center text-sm font-bold">
+        {tr('Cargando simulación...', 'Loading exam simulation...')}
+      </div>
+    );
   }
 
   if (error || !exam || questions.length === 0) {
     return (
       <div className="mx-auto mt-8 max-w-xl rounded-2xl bg-red-50 p-6 text-center text-sm font-bold text-red-600">
-        {error || 'No se encontraron preguntas para este examen.'}
+        {error || tr('No se encontraron preguntas para este examen.', 'No questions found for this exam.')}
       </div>
     );
   }
@@ -190,29 +198,37 @@ export default function ExamPage() {
           }`}
         >
           <p className="text-xs font-black uppercase tracking-wider">
-            {exam.nombre} ({exam.clase_licencia})
+            {trExamName(exam.nombre)} ({trLicense(exam.clase_licencia)})
           </p>
           <h1 className="mt-1 text-3xl font-black">
-            {passed ? '¡Examen Aprobado! 🎉' : 'Examen Reprobado 📚'}
+            {passed
+              ? tr('¡Examen Aprobado! 🎉', 'Exam Passed! 🎉')
+              : tr('Examen Reprobado 📚', 'Exam Failed 📚')}
           </h1>
           <p className="mt-2 text-sm font-bold">
             {passed
-              ? 'Has demostrado dominio para aprobar el examen teórico de CONASET.'
-              : 'Superaste el límite de errores permitidos para aprobar.'}
+              ? tr(
+                  'Has demostrado dominio para aprobar el examen teórico de CONASET.',
+                  'You have demonstrated sufficient mastery to pass the CONASET theory exam.'
+                )
+              : tr(
+                  'Superaste el límite de errores permitidos para aprobar.',
+                  'You exceeded the maximum number of errors allowed to pass.'
+                )}
           </p>
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">Correctas</p>
+            <p className="text-xs font-bold text-[#647084]">{tr('Correctas', 'Correct')}</p>
             <p className="text-2xl font-black text-[#14966F]">{resultData.correctas}</p>
           </div>
           <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">Incorrectas</p>
+            <p className="text-xs font-bold text-[#647084]">{tr('Incorrectas', 'Incorrect')}</p>
             <p className="text-2xl font-black text-[#D92D20]">{totalErrors}</p>
           </div>
           <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">Puntaje Final</p>
+            <p className="text-xs font-bold text-[#647084]">{tr('Puntaje Final', 'Final Score')}</p>
             <p className="text-2xl font-black text-[#2457D6]">{resultData.puntaje}%</p>
           </div>
         </div>
@@ -225,7 +241,12 @@ export default function ExamPage() {
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#14966F] py-3.5 text-xs font-black text-white shadow-md hover:bg-[#0F6B50] transition"
             >
               <Repeat className="h-4 w-4" />
-              <span>Practicar solo mis {totalErrors} fallos (Modo Refuerzo)</span>
+              <span>
+                {tr(
+                  `Practicar solo mis ${totalErrors} fallos (Modo Refuerzo)`,
+                  `Practice only my ${totalErrors} mistakes (Reinforcement Mode)`
+                )}
+              </span>
             </button>
           )}
 
@@ -238,7 +259,7 @@ export default function ExamPage() {
               }}
               className="flex-1 rounded-xl bg-[#2457D6] py-3 text-xs font-black text-white hover:bg-blue-700 transition"
             >
-              Revisar Corrección Detallada
+              {tr('Revisar Corrección Detallada', 'Review Detailed Correction')}
             </button>
             <button
               type="button"
@@ -246,14 +267,14 @@ export default function ExamPage() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-[#C7D8FA] px-4 py-3 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
             >
               <RotateCcw className="h-4 w-4" />
-              Reintentar Todo
+              {tr('Reintentar Todo', 'Retry Full Exam')}
             </button>
             <button
               type="button"
               onClick={() => navigate('/examenes')}
               className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black text-[#516B88] hover:bg-slate-50 transition"
             >
-              Lista de Exámenes
+              {tr('Lista de Exámenes', 'Back to Exams')}
             </button>
           </div>
         </div>
@@ -265,16 +286,18 @@ export default function ExamPage() {
 
   return (
     <div className="mx-auto max-w-4xl pt-6">
-      {/* Modal de confirmación para salir */}
       {showExitConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl space-y-4">
             <div className="flex items-center gap-2 text-amber-600 font-black text-base">
               <AlertTriangle className="h-5 w-5" />
-              <span>¿Abandonar el examen?</span>
+              <span>{tr('¿Abandonar el examen?', 'Quit exam session?')}</span>
             </div>
             <p className="text-xs text-[#516B88] leading-relaxed">
-              Si sales ahora se perderá el progreso de este intento. ¿Deseas salir al menú o continuar respondiendo?
+              {tr(
+                'Si sales ahora se perderá el progreso de este intento. ¿Deseas salir al menú o continuar respondiendo?',
+                'If you leave now, your current progress will be lost. Do you want to quit or continue answering?'
+              )}
             </p>
             <div className="flex gap-2 justify-end pt-2">
               <button
@@ -282,38 +305,42 @@ export default function ExamPage() {
                 onClick={() => setShowExitConfirm(false)}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-[#516B88] hover:bg-slate-50"
               >
-                Continuar examen
+                {tr('Continuar examen', 'Continue exam')}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/examenes')}
                 className="rounded-xl bg-red-600 px-4 py-2 text-xs font-black text-white hover:bg-red-700"
               >
-                Sí, abandonar
+                {tr('Sí, abandonar', 'Yes, quit')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Banner de Práctica de Errores Activa */}
       {isErrorPractice && (
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-green-200 bg-[#EAF8F1] p-3 text-xs text-[#0F6B50]">
           <div className="flex items-center gap-2 font-black">
             <Repeat className="h-4 w-4" />
-            <span>Modo Refuerzo Activo: Repasando únicamente preguntas en que te equivocaste</span>
+            <span>
+              {tr(
+                'Modo Refuerzo Activo: Repasando únicamente preguntas en que te equivocaste',
+                'Reinforcement Mode Active: Reviewing only your missed questions'
+              )}
+            </span>
           </div>
           <button
             type="button"
             onClick={handleReset}
             className="text-[11px] font-bold text-[#14966F] underline"
           >
-            Restaurar examen completo
+            {tr('Restaurar examen completo', 'Restore full exam')}
           </button>
         </div>
       )}
 
-      {/* Cabecera del Examen */}
+      {/* Cabecera */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -324,7 +351,7 @@ export default function ExamPage() {
           className="inline-flex items-center gap-1.5 text-xs font-black text-[#2457D6] hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
-          Salir al menú
+          {tr('Salir al menú', 'Back to menu')}
         </button>
 
         <div className="flex items-center gap-2">
@@ -343,16 +370,16 @@ export default function ExamPage() {
 
           <span className="rounded-full bg-[#EAF1FF] px-3 py-1 text-xs font-black text-[#2457D6]">
             {reviewMode
-              ? 'Revisión Detallada'
+              ? tr('Revisión Detallada', 'Detailed Review')
               : isErrorPractice
-                ? 'Práctica de Fallos'
+                ? tr('Práctica de Fallos', 'Mistake Practice')
                 : currentMode === 'study'
-                  ? 'Modo Estudio'
-                  : 'Modo Examen'}
+                  ? tr('Modo Estudio', 'Study Mode')
+                  : tr('Modo Examen', 'Exam Mode')}
           </span>
 
           <span className="rounded-full border border-[#D8E1EF] bg-white px-3 py-1 text-xs font-bold text-[#647084]">
-            Pregunta {currentIndex + 1} de {questions.length}
+            {tr('Pregunta', 'Question')} {currentIndex + 1} {tr('de', 'of')} {questions.length}
           </span>
         </div>
       </div>
@@ -361,11 +388,11 @@ export default function ExamPage() {
       <div className="rounded-3xl border border-[#D8E1EF] bg-white p-6 sm:p-8 shadow-xs">
         <div className="mb-3 flex items-center gap-2">
           <span className="rounded-md bg-[#F4F7FB] px-2.5 py-1 text-[11px] font-bold text-[#647084]">
-            {currentQ.categoria}
+            {trCategory(currentQ.categoria)}
           </span>
           {currentQ.is_multiple && (
             <span className="rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-              Selección Múltiple
+              {tr('Selección Múltiple', 'Multiple Choice')}
             </span>
           )}
         </div>
@@ -413,18 +440,19 @@ export default function ExamPage() {
           })}
         </div>
 
-        {/* Explicación pedagógica */}
         {showImmediateFeedback && currentQ.explicacion && (
           <div className="mt-6 flex gap-3 rounded-2xl border border-blue-200 bg-[#F4F7FF] p-4 text-xs text-[#173B63]">
             <Lightbulb className="h-5 w-5 shrink-0 text-[#2457D6]" />
             <div>
-              <p className="font-black text-[#2457D6]">Explicación Oficial:</p>
+              <p className="font-black text-[#2457D6]">
+                {tr('Explicación Oficial:', 'Official Explanation:')}
+              </p>
               <p className="mt-0.5 leading-relaxed">{currentQ.explicacion}</p>
             </div>
           </div>
         )}
 
-        {/* Controles de Navegación */}
+        {/* Controles */}
         <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-4">
           <button
             type="button"
@@ -433,7 +461,7 @@ export default function ExamPage() {
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#D8E1EF] px-4 py-2.5 text-xs font-bold text-[#46566E] disabled:opacity-40"
           >
             <ArrowLeft className="h-4 w-4" />
-            Anterior
+            {tr('Anterior', 'Previous')}
           </button>
 
           <div className="flex items-center gap-2">
@@ -446,7 +474,7 @@ export default function ExamPage() {
                 }
                 className="rounded-xl bg-[#14966F] px-4 py-2.5 text-xs font-black text-white hover:bg-[#0F6B50] disabled:opacity-40 transition"
               >
-                Comprobar respuesta
+                {tr('Comprobar respuesta', 'Check Answer')}
               </button>
             )}
 
@@ -456,7 +484,7 @@ export default function ExamPage() {
                 onClick={() => setCurrentIndex((i) => i + 1)}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#2457D6] px-5 py-2.5 text-xs font-black text-white hover:bg-blue-700 transition"
               >
-                Siguiente
+                {tr('Siguiente', 'Next')}
                 <ArrowRight className="h-4 w-4" />
               </button>
             ) : reviewMode ? (
@@ -465,18 +493,23 @@ export default function ExamPage() {
                 onClick={() => setReviewMode(false)}
                 className="rounded-xl bg-[#173B63] px-5 py-2.5 text-xs font-black text-white"
               >
-                Volver al Resumen
+                {tr('Volver al Resumen', 'Back to Summary')}
               </button>
             ) : isErrorPractice ? (
               <button
                 type="button"
                 onClick={() => {
-                  alert('¡Felicitaciones! Has completado el repaso de tus preguntas erradas.');
+                  alert(
+                    tr(
+                      '¡Felicitaciones! Has completado el repaso de tus preguntas erradas.',
+                      'Congratulations! You have completed reviewing your missed questions.'
+                    )
+                  );
                   handleReset();
                 }}
                 className="rounded-xl bg-[#14966F] px-5 py-2.5 text-xs font-black text-white"
               >
-                Finalizar Práctica de Fallos
+                {tr('Finalizar Práctica de Fallos', 'Finish Mistake Practice')}
               </button>
             ) : (
               <button
@@ -486,14 +519,16 @@ export default function ExamPage() {
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#22B968] px-5 py-2.5 text-xs font-black text-white hover:bg-[#148449] transition shadow-md"
               >
                 <Flag className="h-4 w-4" />
-                {submitting ? 'Calificando...' : 'Finalizar Examen'}
+                {submitting
+                  ? tr('Calificando...', 'Grading...')
+                  : tr('Finalizar Examen', 'Submit Exam')}
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Grilla de Acceso Rápido */}
+      {/* Grilla */}
       <div className="mt-4 flex flex-wrap gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white p-4 shadow-xs">
         {questions.map((q, idx) => {
           const hasAns = (answers[q.id] || []).length > 0;
