@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiFetch, API_BASE_URL } from '../api';
 
 const AuthContext = createContext(null);
@@ -16,27 +16,31 @@ export function AuthProvider({ children }) {
     setLicenseClassState(cls);
   };
 
+  const refreshUser = useCallback(async () => {
+    if (!localStorage.getItem('token')) return null;
+    try {
+      const userData = await apiFetch('/users/me');
+      setUser(userData);
+      if (userData.license_class) {
+        setLicenseClassState(userData.license_class);
+      }
+      return userData;
+    } catch {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
-
-    apiFetch('/users/me')
-      .then((userData) => {
-        setUser(userData);
-        if (userData.license_class) {
-          setLicenseClass(userData.license_class);
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
+    refreshUser().finally(() => setLoading(false));
+  }, [token, refreshUser]);
 
   const login = async (usernameOrEmail, password) => {
     const formData = new URLSearchParams();
@@ -75,7 +79,17 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, licenseClass, setLicenseClass }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        refreshUser,
+        licenseClass,
+        setLicenseClass,
+      }}
     >
       {children}
     </AuthContext.Provider>

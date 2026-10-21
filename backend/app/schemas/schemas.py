@@ -17,6 +17,8 @@ class UserResponse(BaseModel):
     license_class: str
     is_admin: bool
     is_premium: bool
+    premium_until: Optional[datetime] = None
+    created_at: Optional[datetime] = None
     profile_completed: bool = True
     password_change_required: bool = False
 
@@ -24,7 +26,10 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-# --- Esquemas de Exámenes y Preguntas ---
+class SimulatedPaymentRequest(BaseModel):
+    plan_type: str  # "daily" | "biweekly" | "monthly"
+    card_holder: str
+    card_number: str
 
 class AnswerItem(BaseModel):
     question_id: int

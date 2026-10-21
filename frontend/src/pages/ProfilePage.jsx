@@ -1,13 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  User,
   Mail,
   Crown,
   Calendar,
   Shield,
   Car,
   CheckCircle2,
-  Clock,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,7 +29,11 @@ export default function ProfilePage() {
         month: 'long',
         year: 'numeric',
       })
-    : 'No registrada';
+    : new Date().toLocaleDateString('es-CL', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
 
   const premiumUntilStr = user.premium_until
     ? new Date(user.premium_until).toLocaleDateString('es-CL', {
@@ -42,41 +46,51 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 pt-6">
       {/* Cabecera de Perfil */}
-      <div className="flex flex-col sm:flex-row items-center gap-5 rounded-3xl border border-[#D7E4F6] bg-white p-6 shadow-xs">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-[#2457D6] text-3xl font-black text-white shadow-md">
-          {user.username.charAt(0).toUpperCase()}
-        </div>
-
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl font-black text-[#173B63]">{user.username}</h1>
-            {user.is_admin && (
-              <span className="rounded-lg bg-purple-100 px-2.5 py-0.5 text-xs font-black text-purple-700">
-                Administrador[cite: 3]
-              </span>
-            )}
-            {user.is_premium ? (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-[#E7F8EF] px-2.5 py-0.5 text-xs font-black text-[#148449]">
-                <Crown className="h-3 w-3" />
-                Plan Premium[cite: 3]
-              </span>
-            ) : (
-              <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500">
-                Plan Gratuito[cite: 3]
-              </span>
-            )}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-5 rounded-3xl border border-[#D7E4F6] bg-white p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-center gap-5">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-[#2457D6] text-3xl font-black text-white shadow-md">
+            {user.username.charAt(0).toUpperCase()}
           </div>
 
-          <p className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-[#6C7B90]">
-            <Mail className="h-3.5 w-3.5" />
-            {user.email}
-          </p>
+          <div className="space-y-1 text-center sm:text-left">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-2xl font-black text-[#173B63]">{user.username}</h1>
+              {user.is_admin && (
+                <span className="rounded-lg bg-purple-100 px-2.5 py-0.5 text-xs font-black text-purple-700">
+                  Administrador
+                </span>
+              )}
+              {user.is_premium ? (
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[#E7F8EF] px-2.5 py-0.5 text-xs font-black text-[#148449]">
+                  <Crown className="h-3 w-3" />
+                  Plan Premium
+                </span>
+              ) : (
+                <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500">
+                  Plan Gratuito
+                </span>
+              )}
+            </div>
 
-          <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-[#6C7B90]">
-            <Calendar className="h-3 w-3" />
-            Miembro desde el {formattedDate}
-          </p>
+            <p className="flex items-center justify-center sm:justify-start gap-1.5 text-xs text-[#6C7B90]">
+              <Mail className="h-3.5 w-3.5" />
+              {user.email}
+            </p>
+
+            <p className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-[#6C7B90]">
+              <Calendar className="h-3 w-3" />
+              Miembro desde el {formattedDate}
+            </p>
+          </div>
         </div>
+
+        <Link
+          to="/planes"
+          className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 text-xs font-black text-white shadow-xs hover:opacity-95 transition"
+        >
+          <CreditCard className="h-4 w-4" />
+          <span>{user.is_premium ? 'Extender Suscripción' : 'Actualizar a Premium'}</span>
+        </Link>
       </div>
 
       {/* Ajustes de Licencia Objetivo */}
@@ -121,22 +135,26 @@ export default function ProfilePage() {
           <div className="rounded-xl bg-[#F4F7FB] p-4">
             <p className="text-xs font-bold text-[#647084]">Tipo de Acceso</p>
             <p className="mt-1 text-base font-black text-[#173B63]">
-              {user.is_premium ? 'Acceso Premium Total' : 'Acceso Básico Gratuito[cite: 3]'}
+              {user.is_premium ? 'Acceso Premium Total' : 'Acceso Básico Gratuito'}
             </p>
             <p className="mt-1 text-[11px] text-[#6C7B90]">
               {user.is_premium
                 ? 'Todos los ensayos, simulacros y revisiones pedagógicas habilitadas.'
-                : 'Acceso a ensayos de prueba.'}
+                : 'Incluye el Ensayo #1 y Demo Express. Actualiza a Premium para desbloquear todo.'}
             </p>
           </div>
 
           <div className="rounded-xl bg-[#F4F7FB] p-4">
             <p className="text-xs font-bold text-[#647084]">Vigencia de Membresía</p>
             <p className="mt-1 text-base font-black text-[#2457D6]">
-              {premiumUntilStr ? `Hasta el ${premiumUntilStr}` : 'Vigencia activa'}
+              {user.is_premium
+                ? premiumUntilStr
+                  ? `Activa hasta el ${premiumUntilStr}`
+                  : 'Vigencia permanente'
+                : 'Sin suscripción activa'}
             </p>
             <p className="mt-1 text-[11px] text-[#6C7B90]">
-              {user.is_admin ? 'Cuenta con privilegios de Administrador' : 'Gestionado por el sistema'}
+              {user.is_admin ? 'Cuenta con privilegios de Administrador' : 'Renovable desde la sección Planes'}
             </p>
           </div>
         </div>

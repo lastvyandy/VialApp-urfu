@@ -1,12 +1,13 @@
+import random
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import User, Exam, ExamQuestion, TestResult
+from app.models.models import User, Exam, ExamQuestion, Question, TestResult
 from app.schemas.schemas import ExamListItem, SubmitTestRequest
 
 router = APIRouter(prefix="/api/v1/tests", tags=["Tests & Exams"])
@@ -49,6 +50,42 @@ async def list_tests(
             )
         )
     return items
+
+@router.post("/quick")
+async def create_quick_exam(
+    clase_licencia: str = "Clase B",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Crea un simulacro express de 10 preguntas aleatorias para demostraciones y práctica ágil."""
+    stmt = select(Question).where(Question.clase_licencia.contains(clase_licencia))
+    result = await db.execute(stmt)
+    matching_questions = result.scalars().all()
+
+    if len(matching_questions) < 10:
+        raise HTTPException(status_code=400, detail="No hay suficientes preguntas para generar el simulacro express")
+
+    selected = random.sample(matching_questions, 10)
+
+    count = await db.scalar(
+        select(func.count()).select_from(Exam).where(Exam.nombre.like(f"%Simulacro Express - {clase_licencia}%"))
+    ) or 0
+
+    exam = Exam(
+        nombre=f"Simulacro Express #{count + 1} - {clase_licencia}",
+        clase_licencia=clase_licencia,
+        categoria="Express (10 Preguntas)",
+        is_free=True,
+    )
+    db.add(exam)
+    await db.flush()
+
+    for q in selected:
+        db.add(ExamQuestion(exam_id=exam.id, question_id=q.id))
+
+    await db.commit()
+    await db.refresh(exam)
+    return {"id": exam.id, "nombre": exam.nombre}
 
 @router.get("/{test_id}")
 async def get_test_detail(
@@ -137,6 +174,10 @@ async def submit_test(
 
     puntaje = int((correctas / total_preguntas) * 100) if total_preguntas > 0 else 0
 
+    # Criterio CONASET: Máx 2 errores en 35 preguntas; máx 1 error en test express de 10 preguntas
+    max_errors = 1 if total_preguntas <= 15 else 2
+    aprobado = (total_preguntas - correctas) <= max_errors
+
     test_result = TestResult(
         user_id=current_user.id,
         test_id=exam.id,
@@ -157,6 +198,6 @@ async def submit_test(
         "correctas": correctas,
         "total_preguntas": total_preguntas,
         "puntaje": puntaje,
-        "aprobado": (total_preguntas - correctas) <= 2,
+        "aprobado": aprobado,
         "resultados": detalles,
     }

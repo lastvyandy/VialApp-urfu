@@ -6,8 +6,8 @@ import {
   BookOpen,
   ShieldCheck,
   LogOut,
-  User as UserIcon,
   Crown,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,7 +18,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const navLinks = [
@@ -40,15 +40,15 @@ export default function Navbar() {
             <div className="flex items-center gap-1.5 leading-none">
               <span className="text-base font-black text-[#173B63]">VialApp</span>
               <span className="rounded-md bg-[#EAF1FF] px-1.5 py-0.5 text-[10px] font-black text-[#2457D6]">
-                PRO
+                CHILE
               </span>
             </div>
             <p className="text-[10px] font-semibold text-[#6C7B90]">Simulador CONASET</p>
           </div>
         </Link>
 
-        {user && (
-          <div className="flex items-center gap-2 sm:gap-6">
+        {user ? (
+          <div className="flex items-center gap-2 sm:gap-5">
             {/* Links de navegación */}
             <nav className="flex items-center gap-1 sm:gap-1.5">
               {navLinks.map(({ name, path, icon: Icon }) => {
@@ -68,6 +68,21 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+
+              {/* Botón de Planes / Upgrade */}
+              <Link
+                to="/planes"
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition ${
+                  location.pathname === '/planes'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : user.is_premium
+                      ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs hover:opacity-95'
+                }`}
+              >
+                <Crown className="h-3.5 w-3.5" />
+                <span>{user.is_premium ? 'Mi Plan' : 'Hazte Premium'}</span>
+              </Link>
 
               {user.is_admin && (
                 <Link
@@ -113,6 +128,29 @@ export default function Navbar() {
                 <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5">
+            <Link
+              to="/glosario"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-[#516B88] hover:text-[#2457D6]"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>Glosario</span>
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-xl border border-[#C7D8FA] bg-white px-4 py-2 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
+            >
+              Iniciar Sesión
+            </Link>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2457D6] px-4 py-2 text-xs font-black text-white shadow-xs hover:bg-blue-700 transition"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Crear Cuenta Gratis</span>
+            </Link>
           </div>
         )}
       </div>

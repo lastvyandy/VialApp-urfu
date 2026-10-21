@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
@@ -9,12 +10,19 @@ import ExamPage from './pages/ExamPage';
 import HistoryPage from './pages/HistoryPage';
 import GlossaryPage from './pages/GlossaryPage';
 import ProfilePage from './pages/ProfilePage';
+import SubscriptionPage from './pages/SubscriptionPage';
 import AdminPage from './pages/AdminPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="p-8 text-center text-sm font-bold">Cargando sesión...</div>;
   return user ? children : <Navigate to="/login" replace />;
+}
+
+function HomeOrLanding() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="p-8 text-center text-sm font-bold">Cargando...</div>;
+  return user ? <HomePage /> : <LandingPage />;
 }
 
 export default function App() {
@@ -25,16 +33,10 @@ export default function App() {
           <Navbar />
           <main className="px-4 pb-12">
             <Routes>
+              <Route path="/" element={<HomeOrLanding />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route
-                path="/"
-                element={
-                  <PrivateRoute>
-                    <HomePage />
-                  </PrivateRoute>
-                }
-              />
+              <Route path="/glosario" element={<GlossaryPage />} />
               <Route
                 path="/examenes"
                 element={
@@ -60,18 +62,18 @@ export default function App() {
                 }
               />
               <Route
-                path="/glosario"
-                element={
-                  <PrivateRoute>
-                    <GlossaryPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
                 path="/perfil"
                 element={
                   <PrivateRoute>
                     <ProfilePage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/planes"
+                element={
+                  <PrivateRoute>
+                    <SubscriptionPage />
                   </PrivateRoute>
                 }
               />

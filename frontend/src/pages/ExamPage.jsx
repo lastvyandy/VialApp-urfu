@@ -10,15 +10,14 @@ import {
   RotateCcw,
   Clock,
   AlertTriangle,
+  Repeat,
 } from 'lucide-react';
 import { apiFetch } from '../api';
-
-const EXAM_DURATION_SECONDS = 45 * 60; // 45 minutos oficiales CONASET
 
 export default function ExamPage() {
   const { testId } = useParams();
   const [searchParams] = useSearchParams();
-  const mode = searchParams.get('mode') === 'study' ? 'study' : 'exam';
+  const initialMode = searchParams.get('mode') === 'study' ? 'study' : 'exam';
   const navigate = useNavigate();
 
   const [exam, setExam] = useState(null);
@@ -32,8 +31,13 @@ export default function ExamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Temporizador
-  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
+  // Modo actual y práctica de errores
+  const [currentMode, setCurrentMode] = useState(initialMode);
+  const [isErrorPractice, setIsErrorPractice] = useState(false);
+  const originalQuestionsRef = useRef([]);
+
+  // Temporizador regresivo
+  const [timeLeft, setTimeLeft] = useState(45 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const timerRef = useRef(null);
 
@@ -42,15 +46,19 @@ export default function ExamPage() {
     apiFetch(`/tests/${testId}`)
       .then((data) => {
         setExam(data);
-        setQuestions(data.questions || []);
+        const qs = data.questions || [];
+        setQuestions(qs);
+        originalQuestionsRef.current = qs;
+        // 15 min para tests express (<=15 preg), 45 min para exámenes oficiales
+        const totalDuration = qs.length <= 15 ? 15 * 60 : 45 * 60;
+        setTimeLeft(totalDuration);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [testId]);
 
-  // Manejo del temporizador regresivo en Modo Examen
   useEffect(() => {
-    if (mode !== 'exam' || resultData || reviewMode || loading) {
+    if (currentMode !== 'exam' || resultData || reviewMode || loading || isErrorPractice) {
       clearInterval(timerRef.current);
       return;
     }
@@ -67,10 +75,10 @@ export default function ExamPage() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [mode, resultData, reviewMode, loading]);
+  }, [currentMode, resultData, reviewMode, loading, isErrorPractice]);
 
   const handleTimeExpired = async () => {
-    alert('⏱️ El tiempo oficial de 45 minutos ha finalizado. Tu examen se enviará automáticamente.');
+    alert('⏱️ El tiempo ha finalizado. Tu examen se calificará con las respuestas marcadas.');
     await handleSubmitExam();
   };
 
@@ -95,12 +103,12 @@ export default function ExamPage() {
   const currentQ = questions[currentIndex];
   const selected = answers[currentQ.id] || [];
   const showImmediateFeedback =
-    reviewMode || (mode === 'study' && checkedQuestions[currentQ.id]);
+    reviewMode || (currentMode === 'study' && checkedQuestions[currentQ.id]);
 
   const toggleOption = (letter) => {
     if (resultData && !reviewMode) return;
     if (reviewMode) return;
-    if (mode === 'study' && checkedQuestions[currentQ.id]) return;
+    if (currentMode === 'study' && checkedQuestions[currentQ.id]) return;
 
     setAnswers((prev) => {
       const current = prev[currentQ.id] || [];
@@ -119,7 +127,7 @@ export default function ExamPage() {
     clearInterval(timerRef.current);
     try {
       const payload = {
-        mode,
+        mode: currentMode,
         answers: Object.entries(answers).map(([qId, resp]) => ({
           question_id: Number(qId),
           respuestas: resp,
@@ -139,17 +147,41 @@ export default function ExamPage() {
   };
 
   const handleReset = () => {
+    setQuestions(originalQuestionsRef.current);
     setAnswers({});
     setCheckedQuestions({});
     setResultData(null);
     setReviewMode(false);
+    setIsErrorPractice(false);
+    setCurrentMode(initialMode);
     setCurrentIndex(0);
-    setTimeLeft(EXAM_DURATION_SECONDS);
+    const totalDuration = originalQuestionsRef.current.length <= 15 ? 15 * 60 : 45 * 60;
+    setTimeLeft(totalDuration);
   };
 
-  // Pantalla de Resultados
+  const startErrorPractice = () => {
+    if (!resultData?.resultados) return;
+    const failedIds = new Set(
+      resultData.resultados.filter((r) => !r.is_correct).map((r) => r.question_id)
+    );
+    const failedQuestions = originalQuestionsRef.current.filter((q) => failedIds.has(q.id));
+
+    if (failedQuestions.length === 0) return;
+
+    setQuestions(failedQuestions);
+    setAnswers({});
+    setCheckedQuestions({});
+    setResultData(null);
+    setReviewMode(false);
+    setIsErrorPractice(true);
+    setCurrentMode('study');
+    setCurrentIndex(0);
+  };
+
   if (resultData && !reviewMode) {
     const passed = resultData.aprobado;
+    const totalErrors = resultData.total_preguntas - resultData.correctas;
+
     return (
       <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-[#D7E4F6] bg-white p-6 sm:p-8 shadow-xs">
         <div
@@ -165,8 +197,8 @@ export default function ExamPage() {
           </h1>
           <p className="mt-2 text-sm font-bold">
             {passed
-              ? 'Cumples con los requisitos para aprobar el examen teórico de CONASET.'
-              : 'Se requiere un mínimo de 33 respuestas correctas para aprobar.'}
+              ? 'Has demostrado dominio para aprobar el examen teórico de CONASET.'
+              : 'Superaste el límite de errores permitidos para aprobar.'}
           </p>
         </div>
 
@@ -177,9 +209,7 @@ export default function ExamPage() {
           </div>
           <div className="rounded-2xl bg-[#F4F7FB] p-4">
             <p className="text-xs font-bold text-[#647084]">Incorrectas</p>
-            <p className="text-2xl font-black text-[#D92D20]">
-              {resultData.total_preguntas - resultData.correctas}
-            </p>
+            <p className="text-2xl font-black text-[#D92D20]">{totalErrors}</p>
           </div>
           <div className="rounded-2xl bg-[#F4F7FB] p-4">
             <p className="text-xs font-bold text-[#647084]">Puntaje Final</p>
@@ -187,38 +217,51 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setCurrentIndex(0);
-              setReviewMode(true);
-            }}
-            className="flex-1 rounded-xl bg-[#2457D6] py-3 text-xs font-black text-white hover:bg-blue-700 transition"
-          >
-            Revisar Preguntas y Explicaciones
-          </button>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#C7D8FA] px-4 py-3 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reintentar
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/examenes')}
-            className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black text-[#516B88] hover:bg-slate-50 transition"
-          >
-            Lista de Exámenes
-          </button>
+        <div className="mt-6 flex flex-col gap-2.5">
+          {totalErrors > 0 && (
+            <button
+              type="button"
+              onClick={startErrorPractice}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#14966F] py-3.5 text-xs font-black text-white shadow-md hover:bg-[#0F6B50] transition"
+            >
+              <Repeat className="h-4 w-4" />
+              <span>Practicar solo mis {totalErrors} fallos (Modo Refuerzo)</span>
+            </button>
+          )}
+
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentIndex(0);
+                setReviewMode(true);
+              }}
+              className="flex-1 rounded-xl bg-[#2457D6] py-3 text-xs font-black text-white hover:bg-blue-700 transition"
+            >
+              Revisar Corrección Detallada
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#C7D8FA] px-4 py-3 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reintentar Todo
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/examenes')}
+              className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black text-[#516B88] hover:bg-slate-50 transition"
+            >
+              Lista de Exámenes
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const isTimerUrgent = mode === 'exam' && timeLeft <= 300; // últimos 5 minutos
+  const isTimerUrgent = currentMode === 'exam' && timeLeft <= 180;
 
   return (
     <div className="mx-auto max-w-4xl pt-6">
@@ -253,12 +296,29 @@ export default function ExamPage() {
         </div>
       )}
 
+      {/* Banner de Práctica de Errores Activa */}
+      {isErrorPractice && (
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-green-200 bg-[#EAF8F1] p-3 text-xs text-[#0F6B50]">
+          <div className="flex items-center gap-2 font-black">
+            <Repeat className="h-4 w-4" />
+            <span>Modo Refuerzo Activo: Repasando únicamente preguntas en que te equivocaste</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-[11px] font-bold text-[#14966F] underline"
+          >
+            Restaurar examen completo
+          </button>
+        </div>
+      )}
+
       {/* Cabecera del Examen */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => {
-            if (resultData || reviewMode) navigate('/examenes');
+            if (resultData || reviewMode || isErrorPractice) navigate('/examenes');
             else setShowExitConfirm(true);
           }}
           className="inline-flex items-center gap-1.5 text-xs font-black text-[#2457D6] hover:underline"
@@ -268,8 +328,7 @@ export default function ExamPage() {
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Cronómetro Oficial */}
-          {mode === 'exam' && !reviewMode && (
+          {currentMode === 'exam' && !reviewMode && (
             <div
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black transition ${
                 isTimerUrgent
@@ -283,7 +342,13 @@ export default function ExamPage() {
           )}
 
           <span className="rounded-full bg-[#EAF1FF] px-3 py-1 text-xs font-black text-[#2457D6]">
-            {reviewMode ? 'Revisión Detallada' : mode === 'study' ? 'Modo Estudio' : 'Modo Examen'}
+            {reviewMode
+              ? 'Revisión Detallada'
+              : isErrorPractice
+                ? 'Práctica de Fallos'
+                : currentMode === 'study'
+                  ? 'Modo Estudio'
+                  : 'Modo Examen'}
           </span>
 
           <span className="rounded-full border border-[#D8E1EF] bg-white px-3 py-1 text-xs font-bold text-[#647084]">
@@ -372,7 +437,7 @@ export default function ExamPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            {mode === 'study' && !reviewMode && !checkedQuestions[currentQ.id] && (
+            {currentMode === 'study' && !reviewMode && !checkedQuestions[currentQ.id] && (
               <button
                 type="button"
                 disabled={selected.length === 0}
@@ -402,6 +467,17 @@ export default function ExamPage() {
               >
                 Volver al Resumen
               </button>
+            ) : isErrorPractice ? (
+              <button
+                type="button"
+                onClick={() => {
+                  alert('¡Felicitaciones! Has completado el repaso de tus preguntas erradas.');
+                  handleReset();
+                }}
+                className="rounded-xl bg-[#14966F] px-5 py-2.5 text-xs font-black text-white"
+              >
+                Finalizar Práctica de Fallos
+              </button>
             ) : (
               <button
                 type="button"
@@ -417,7 +493,7 @@ export default function ExamPage() {
         </div>
       </div>
 
-      {/* Grilla de Acceso Rápido a Preguntas (1 a 35) */}
+      {/* Grilla de Acceso Rápido */}
       <div className="mt-4 flex flex-wrap gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white p-4 shadow-xs">
         {questions.map((q, idx) => {
           const hasAns = (answers[q.id] || []).length > 0;

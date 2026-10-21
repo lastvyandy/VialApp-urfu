@@ -10,7 +10,6 @@ import {
   BookOpen,
   ArrowRight,
   Sparkles,
-  History,
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +23,7 @@ export default function HomePage() {
   const [stats, setStats] = useState(null);
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [startingExpress, setStartingExpress] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +49,20 @@ export default function HomePage() {
     };
   }, [licenseClass]);
 
+  const handleStartExpress = async () => {
+    setStartingExpress(true);
+    try {
+      const res = await apiFetch(`/tests/quick?clase_licencia=${encodeURIComponent(licenseClass)}`, {
+        method: 'POST',
+      });
+      navigate(`/test/${res.id}?mode=exam`);
+    } catch (err) {
+      alert(`Error al generar examen rápido: ${err.message}`);
+    } finally {
+      setStartingExpress(false);
+    }
+  };
+
   const summary = stats?.summary;
   const categorias = stats?.categorias || [];
 
@@ -68,17 +82,28 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-2 text-sm leading-relaxed text-[#516B88]">
-              Practica con las preguntas oficiales de la prueba teórica CONASET[cite: 3]. Elige tu clase de licencia y realiza simulaciones cronometradas con corrección detallada.
+              Practica con las preguntas oficiales de la prueba teórica CONASET. Elige tu clase de licencia y realiza simulaciones cronometradas con corrección detallada.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleStartExpress}
+                disabled={startingExpress}
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#E67E22] px-5 py-3 text-xs font-black text-white shadow-md hover:bg-[#D35400] transition disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>{startingExpress ? 'Generando demo...' : '⚡ Demo Express (10 Preguntas)'}</span>
+              </button>
+
               <Link
                 to="/examenes"
                 className="inline-flex items-center gap-2 rounded-2xl bg-[#2457D6] px-5 py-3 text-xs font-black text-white shadow-md hover:bg-blue-700 transition"
               >
                 <Play className="h-4 w-4" />
-                <span>Explorar Exámenes Disponibles</span>
+                <span>Explorar Exámenes (35 Preg.)</span>
               </Link>
+
               <Link
                 to="/glosario"
                 className="inline-flex items-center gap-2 rounded-2xl border border-[#C7D8FA] bg-white px-5 py-3 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
@@ -89,7 +114,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Selector de Licencia en Tarjeta Hero */}
+          {/* Selector de Licencia */}
           <div className="rounded-2xl border border-[#D7E4F6] bg-white/90 p-5 shadow-xs backdrop-blur-sm">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-extrabold text-[#6C7B90]">Tu Licencia Objetivo</span>
@@ -148,7 +173,7 @@ export default function HomePage() {
 
             <div className="rounded-2xl border border-[#DDE7F2] bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between text-xs font-bold text-[#148449]">
-                <span>Aprobados (≥ 33 pts)[cite: 2]</span>
+                <span>Aprobados</span>
                 <Trophy className="h-4 w-4" />
               </div>
               <p className="mt-2 text-3xl font-black text-[#148449]">{summary.aprobados}</p>

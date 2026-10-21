@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func
 from app.core.database import async_session
 from app.core.security import get_password_hash
@@ -14,7 +15,9 @@ async def seed_database():
 
         print("🌱 Inicializando semilla de datos para VialApp MVP...")
 
-        # 2. Crear usuarios por defecto para la demo
+        now = datetime.now(timezone.utc)
+
+        # 2. Crear usuarios por defecto para la demo (con premium y fechas activas)
         demo_user = User(
             id="usr_demo_urfu01",
             username="jorge_demo",
@@ -23,6 +26,7 @@ async def seed_database():
             license_class="Clase B",
             is_admin=False,
             is_premium=True,
+            premium_until=now + timedelta(days=30),
         )
         admin_user = User(
             id="usr_admin_urfu1",
@@ -32,10 +36,11 @@ async def seed_database():
             license_class="Clase B",
             is_admin=True,
             is_premium=True,
+            premium_until=now + timedelta(days=365),
         )
         db.add_all([demo_user, admin_user])
 
-        # 3. Cargar preguntas desde final_preguntas_respuestasPT.json (limitamos a 200 para rapidez en MVP)
+        # 3. Cargar preguntas desde final_preguntas_respuestasPT.json (200 preguntas para el MVP)
         json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "final_preguntas_respuestasPT.json")
         questions_created = []
 
@@ -56,8 +61,8 @@ async def seed_database():
                 db.add(q)
                 questions_created.append(q)
         else:
-            # Fallback en caso de que no esté el JSON aún
-            for i in range(1, 16):
+            # Fallback en caso de que no esté el JSON: generamos 80 preguntas para cubrir los cortes
+            for i in range(1, 81):
                 q = Question(
                     nro_pregunta=i,
                     texto=f"Pregunta de prueba #{i}: ¿Cuál es la velocidad máxima en zona urbana en Chile?",
@@ -72,15 +77,15 @@ async def seed_database():
 
         await db.flush()
 
-        # 4. Generar Exámenes de muestra (15 preguntas por examen para que sea ágil mostrarlo en clases)
+        # 4. Generar Exámenes de muestra (35 preguntas oficiales según CONASET)
         clase_b_qs = [q for q in questions_created if "Clase B" in q.clase_licencia]
         clase_c_qs = [q for q in questions_created if "Clase C" in q.clase_licencia]
 
         exams_spec = [
-            ("Ensayo Oficial #1 - Clase B", "Clase B", "Mixto", clase_b_qs[:15]),
-            ("Ensayo Oficial #2 - Clase B", "Clase B", "Mixto", clase_b_qs[15:30]),
-            ("Ensayo Oficial #1 - Clase C", "Clase C", "Mixto", clase_c_qs[:15]),
-            ("Ensayo Oficial #2 - Clase C", "Clase C", "Mixto", clase_c_qs[15:30]),
+            ("Ensayo Oficial #1 - Clase B", "Clase B", "Mixto", clase_b_qs[:35]),
+            ("Ensayo Oficial #2 - Clase B", "Clase B", "Mixto", clase_b_qs[35:70]),
+            ("Ensayo Oficial #1 - Clase C", "Clase C", "Mixto", clase_c_qs[:35]),
+            ("Ensayo Oficial #2 - Clase C", "Clase C", "Mixto", clase_c_qs[35:70]),
         ]
 
         for nombre, licencia, categoria, qs_subset in exams_spec:

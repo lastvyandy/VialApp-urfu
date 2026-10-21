@@ -7,6 +7,7 @@ import app.models.models  # noqa: F401
 from app.seed import seed_database
 from app.api.routes_users import router as users_router
 from app.api.routes_tests import router as tests_router
+from app.api.routes_admin import router as admin_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,7 +24,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +32,7 @@ app.add_middleware(
 
 app.include_router(users_router)
 app.include_router(tests_router)
+app.include_router(admin_router)
 
 @app.get("/")
 async def root():

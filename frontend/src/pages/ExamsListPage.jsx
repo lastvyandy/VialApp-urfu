@@ -5,32 +5,35 @@ import {
   Play,
   BookOpen,
   CheckCircle2,
-  XCircle,
   HelpCircle,
   Clock,
   Sparkles,
   Filter,
+  Lock,
+  Crown,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api';
 
 const LICENSE_OPTIONS = ['Clase B', 'Clase C'];
+
 const CATEGORY_FILTERS = [
-  'Todas',
-  'Mixto',
-  'Normas y Señalización del Tránsito',
-  'Funcionamiento y Mantenimiento del Vehículo',
-  'La Persona en el Tránsito y Convivencia Vial',
+  { id: 'Todas', label: 'Todas las áreas' },
+  { id: 'Mixto', label: 'Mixto' },
+  { id: 'Normas y Señalización del Tránsito', label: 'Normas de Tránsito' },
+  { id: 'Funcionamiento y Mantenimiento del Vehículo', label: 'Mecánica' },
+  { id: 'La Persona en el Tránsito y Convivencia Vial', label: 'Convivencia Vial' },
 ];
 
 export default function ExamsListPage() {
-  const { licenseClass, setLicenseClass } = useAuth();
+  const { user, licenseClass, setLicenseClass } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'completed' | 'pending'
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [startingExpress, setStartingExpress] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -52,6 +55,20 @@ export default function ExamsListPage() {
       active = false;
     };
   }, [licenseClass]);
+
+  const handleStartExpress = async () => {
+    setStartingExpress(true);
+    try {
+      const res = await apiFetch(`/tests/quick?clase_licencia=${encodeURIComponent(licenseClass)}`, {
+        method: 'POST',
+      });
+      navigate(`/test/${res.id}?mode=exam`);
+    } catch (err) {
+      alert(`Error al generar examen rápido: ${err.message}`);
+    } finally {
+      setStartingExpress(false);
+    }
+  };
 
   const filteredExams = useMemo(() => {
     return exams.filter((exam) => {
@@ -82,23 +99,34 @@ export default function ExamsListPage() {
           </div>
         </div>
 
-        {/* Selector de licencia en la barra */}
-        <div className="flex items-center gap-2 rounded-2xl border border-[#C7D8FA] bg-white p-1.5 shadow-xs">
-          <span className="pl-2 text-xs font-extrabold text-[#6C7B90]">Clase:</span>
-          {LICENSE_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => setLicenseClass(opt)}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-black transition ${
-                licenseClass === opt
-                  ? 'bg-[#2457D6] text-white shadow-xs'
-                  : 'text-[#2457D6] hover:bg-[#F4F7FF]'
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleStartExpress}
+            disabled={startingExpress}
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#E67E22] px-4 py-2.5 text-xs font-black text-white shadow-xs hover:bg-[#D35400] transition disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>{startingExpress ? 'Generando...' : '⚡ Ensayo Express (10 Pts)'}</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 rounded-2xl border border-[#C7D8FA] bg-white p-1.5 shadow-xs">
+            <span className="pl-2 text-xs font-extrabold text-[#6C7B90]">Clase:</span>
+            {LICENSE_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setLicenseClass(opt)}
+                className={`rounded-xl px-3 py-1.5 text-xs font-black transition ${
+                  licenseClass === opt
+                    ? 'bg-[#2457D6] text-white shadow-xs'
+                    : 'text-[#2457D6] hover:bg-[#F4F7FF]'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -108,16 +136,16 @@ export default function ExamsListPage() {
           <Filter className="h-4 w-4 text-[#6C7B90] ml-1 mr-2" />
           {CATEGORY_FILTERS.map((cat) => (
             <button
-              key={cat}
+              key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => setSelectedCategory(cat.id)}
               className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                selectedCategory === cat
+                selectedCategory === cat.id
                   ? 'bg-[#2457D6] text-white'
                   : 'bg-[#F4F7FB] text-[#516B88] hover:bg-[#EAF1FF] hover:text-[#2457D6]'
               }`}
             >
-              {cat === 'Todas' ? 'Todas las áreas' : cat.split(' ')[0]}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -148,9 +176,12 @@ export default function ExamsListPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredExams.map((exam) => {
+          {filteredExams.map((exam, index) => {
             const hasScore = exam.completado && exam.ultimo_puntaje !== null;
             const passed = hasScore && exam.ultimo_puntaje >= 85;
+            // El primer examen y los Express son gratuitos; el resto requiere Premium
+            const isFreeExam = index === 0 || exam.nombre.includes('Express') || exam.nombre.includes('#1 ');
+            const isLocked = !user?.is_premium && !user?.is_admin && !isFreeExam;
 
             return (
               <div
@@ -163,7 +194,12 @@ export default function ExamsListPage() {
                       {exam.clase_licencia}
                     </span>
 
-                    {exam.completado ? (
+                    {isLocked ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-black text-amber-700">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </span>
+                    ) : exam.completado ? (
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-black ${
                           passed
@@ -179,8 +215,8 @@ export default function ExamsListPage() {
                         Nota: {exam.ultimo_puntaje}%
                       </span>
                     ) : (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                        Nuevo
+                      <span className="rounded-full bg-[#E7F8EF] px-2 py-0.5 text-[10px] font-bold text-[#148449]">
+                        Gratis
                       </span>
                     )}
                   </div>
@@ -193,34 +229,45 @@ export default function ExamsListPage() {
                   <div className="mt-4 flex items-center gap-4 text-xs font-bold text-[#516B88]">
                     <span className="flex items-center gap-1">
                       <FileText className="h-3.5 w-3.5 text-[#2457D6]" />
-                      {exam.total_preguntas} preguntas[cite: 3]
+                      {exam.total_preguntas} preguntas
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-[#2457D6]" />
-                      45 minutos[cite: 2]
+                      {exam.total_preguntas <= 15 ? '15 minutos' : '45 minutos'}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-2">
+                {isLocked ? (
                   <button
                     type="button"
-                    onClick={() => navigate(`/test/${exam.id}?mode=exam`)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-[#2457D6] py-2.5 text-xs font-black text-white transition hover:bg-blue-700"
+                    onClick={() => navigate('/planes')}
+                    className="mt-6 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-xs font-black text-white shadow-xs hover:opacity-95 transition"
                   >
-                    <Play className="h-3.5 w-3.5" />
-                    Examen
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>Desbloquear con Premium</span>
                   </button>
+                ) : (
+                  <div className="mt-6 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/test/${exam.id}?mode=exam`)}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[#2457D6] py-2.5 text-xs font-black text-white transition hover:bg-blue-700"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      Examen
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/test/${exam.id}?mode=study`)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-[#14966F] bg-[#EAF8F1] py-2.5 text-xs font-black text-[#14966F] transition hover:bg-green-100"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    Estudio
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/test/${exam.id}?mode=study`)}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-[#14966F] bg-[#EAF8F1] py-2.5 text-xs font-black text-[#14966F] transition hover:bg-green-100"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      Estudio
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

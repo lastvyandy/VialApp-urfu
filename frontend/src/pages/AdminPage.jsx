@@ -6,7 +6,6 @@ import {
   FileQuestion,
   GraduationCap,
   Award,
-  PlusCircle,
   ArrowLeft,
   CheckCircle2,
   Calendar,
@@ -15,26 +14,24 @@ import {
   Trash2,
   Crown,
   Search,
-  Filter,
-  BarChart3,
   BookOpen,
   RefreshCw,
-  Clock,
-  Layers,
+  AlertTriangle,
 } from 'lucide-react';
 import { apiFetch } from '../api';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'generator' | 'analytics' | 'questions'
+  const [activeTab, setActiveTab] = useState('users');
   const [summary, setSummary] = useState(null);
   const [usersList, setUsersList] = useState([]);
   const [questionsList, setQuestionsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Filtros de usuarios
   const [userSearch, setUserSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all'); // 'all' | 'admin' | 'student'
-  const [planFilter, setPlanFilter] = useState('all'); // 'all' | 'premium' | 'free'
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
 
   // Generador de exámenes
   const [claseLicencia, setClaseLicencia] = useState('Clase B');
@@ -51,15 +48,16 @@ export default function AdminPage() {
 
   const loadAll = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const [sumData, usersData] = await Promise.all([
         apiFetch('/admin/summary'),
         apiFetch('/admin/users'),
       ]);
       setSummary(sumData);
-      setUsersList(usersData);
+      setUsersList(Array.isArray(usersData) ? usersData : []);
     } catch (err) {
-      console.error(err);
+      setLoadError(err.message || 'No se pudieron cargar los datos de administración.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +72,7 @@ export default function AdminPage() {
       const qs = await apiFetch(
         `/admin/questions?categoria=${encodeURIComponent(questionCategory)}&search=${encodeURIComponent(questionSearch)}&limit=60`
       );
-      setQuestionsList(qs);
+      setQuestionsList(Array.isArray(qs) ? qs : []);
     } catch (err) {
       console.error(err);
     }
@@ -86,7 +84,6 @@ export default function AdminPage() {
     }
   }, [activeTab, questionCategory, questionSearch]);
 
-  // Acciones sobre usuarios
   const handleUserUpdate = async (userId, payload, message) => {
     try {
       await apiFetch(`/admin/users/${userId}`, {
@@ -110,7 +107,6 @@ export default function AdminPage() {
     }
   };
 
-  // Generación de exámenes
   const handleBulkGenerate = async (e) => {
     e.preventDefault();
     setGenMessage('');
@@ -133,7 +129,6 @@ export default function AdminPage() {
     }
   };
 
-  // Filtrado de usuarios
   const filteredUsers = useMemo(() => {
     return usersList.filter((u) => {
       const q = userSearch.toLowerCase().trim();
@@ -148,7 +143,7 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pt-6">
-      {/* Top Header */}
+      {/* Cabecera */}
       <div className="flex flex-col justify-between gap-4 rounded-3xl border border-[#C9D9FF] bg-gradient-to-r from-[#EAF1FF] via-white to-[#F0F5FF] p-6 shadow-sm sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2.5">
@@ -184,7 +179,14 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {loadError && (
+        <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-600">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span>{loadError}</span>
+        </div>
+      )}
+
+      {/* Tarjetas de Métricas */}
       {summary && (
         <div className="grid gap-3.5 sm:grid-cols-4">
           <div className="rounded-2xl border border-[#DDE7F2] bg-white p-4 shadow-xs">
@@ -195,7 +197,7 @@ export default function AdminPage() {
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-[#173B63]">{summary.total_users}</span>
               <span className="rounded-md bg-[#E7F8EF] px-1.5 py-0.5 text-[11px] font-black text-[#148449]">
-                {summary.premium_users} Premium[cite: 3]
+                {summary.premium_users} Premium
               </span>
             </div>
           </div>
@@ -207,7 +209,7 @@ export default function AdminPage() {
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-[#173B63]">{summary.total_exams}</span>
-              <span className="text-[11px] font-bold text-[#647084]">35 preg/ensayo[cite: 3]</span>
+              <span className="text-[11px] font-bold text-[#647084]">35 preg/ensayo</span>
             </div>
           </div>
 
@@ -218,7 +220,7 @@ export default function AdminPage() {
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-[#173B63]">{summary.total_questions}</span>
-              <span className="text-[11px] font-bold text-[#647084]">CONASET[cite: 3]</span>
+              <span className="text-[11px] font-bold text-[#647084]">CONASET</span>
             </div>
           </div>
 
@@ -230,14 +232,14 @@ export default function AdminPage() {
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-[#173B63]">{summary.tasa_aprobacion}%</span>
               <span className="text-[11px] font-bold text-[#647084]">
-                {summary.total_results} rendidos[cite: 3]
+                {summary.total_results} rendidos
               </span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tabs Switcher */}
+      {/* Pestañas */}
       <div className="flex gap-2 border-b border-[#D7E4F6] pb-1">
         <button
           type="button"
@@ -279,7 +281,7 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* TAB 1: GESTIÓN DE ALUMNOS */}
+      {/* PESTAÑA 1: GESTIÓN DE ALUMNOS */}
       {activeTab === 'users' && (
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#D7E4F6] bg-white p-3.5 shadow-xs">
@@ -301,8 +303,8 @@ export default function AdminPage() {
                 className="rounded-xl border border-[#C7D8FA] px-3 py-2 text-xs font-bold text-[#173B63] focus:outline-none"
               >
                 <option value="all">Todos los planes</option>
-                <option value="premium">Solo Premium[cite: 3]</option>
-                <option value="free">Solo Gratuitos[cite: 3]</option>
+                <option value="premium">Solo Premium</option>
+                <option value="free">Solo Gratuitos</option>
               </select>
 
               <select
@@ -311,8 +313,8 @@ export default function AdminPage() {
                 className="rounded-xl border border-[#C7D8FA] px-3 py-2 text-xs font-bold text-[#173B63] focus:outline-none"
               >
                 <option value="all">Todos los roles</option>
-                <option value="admin">Administradores[cite: 3]</option>
-                <option value="student">Alumnos[cite: 3]</option>
+                <option value="admin">Administradores</option>
+                <option value="student">Alumnos</option>
               </select>
             </div>
           </div>
@@ -342,7 +344,6 @@ export default function AdminPage() {
                           <p className="text-[11px] text-[#6C7B90]">{u.email}</p>
                         </td>
 
-                        {/* Cambiar Licencia */}
                         <td className="p-3.5">
                           <select
                             value={u.license_class || 'Clase B'}
@@ -356,7 +357,6 @@ export default function AdminPage() {
                           </select>
                         </td>
 
-                        {/* Estado Premium Badge */}
                         <td className="p-3.5">
                           {isPremium ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-[#E7F8EF] px-2.5 py-1 font-black text-[#148449]">
@@ -365,12 +365,11 @@ export default function AdminPage() {
                             </span>
                           ) : (
                             <span className="rounded-full bg-slate-100 px-2.5 py-1 font-bold text-slate-500">
-                              Gratuito[cite: 3]
+                              Gratuito
                             </span>
                           )}
                         </td>
 
-                        {/* Selector de Fecha */}
                         <td className="p-3.5">
                           <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5 text-[#6C7B90]" />
@@ -388,7 +387,6 @@ export default function AdminPage() {
                           </div>
                         </td>
 
-                        {/* Rol */}
                         <td className="p-3.5">
                           <button
                             type="button"
@@ -405,7 +403,6 @@ export default function AdminPage() {
                           </button>
                         </td>
 
-                        {/* Botones de acción rápida */}
                         <td className="p-3.5 text-center">
                           <div className="flex items-center justify-center gap-1.5">
                             <button
@@ -478,15 +475,15 @@ export default function AdminPage() {
         </section>
       )}
 
-      {/* TAB 2: GENERADOR MASIVO DE ENSAYOS */}
+      {/* PESTAÑA 2: GENERADOR MASIVO DE ENSAYOS */}
       {activeTab === 'generator' && (
         <section className="rounded-3xl border border-[#D7E4F6] bg-white p-6 shadow-xs">
           <div className="flex items-center gap-2.5 text-base font-black text-[#173B63]">
             <Sparkles className="h-5 w-5 text-[#2457D6]" />
-            <h2>Generador Masivo de Simulacros Oficiales CONASET (35 Preguntas)[cite: 3]</h2>
+            <h2>Generador Masivo de Simulacros Oficiales CONASET (35 Preguntas)</h2>
           </div>
           <p className="mt-1 text-xs text-[#6C7B90]">
-            Crea ensayos en lote mezclando aleatoriamente preguntas desde la base de datos sin límites restrictivos[cite: 3].
+            Crea ensayos en lote mezclando aleatoriamente preguntas desde la base de datos sin límites restrictivos.
           </p>
 
           {genMessage && (
@@ -539,7 +536,7 @@ export default function AdminPage() {
                 onChange={(e) => setNumQuestions(Number(e.target.value))}
                 className="mt-1 w-full rounded-xl border border-[#C7D8FA] px-3.5 py-2.5 text-xs font-bold focus:outline-none"
               />
-              <span className="text-[10px] text-[#6C7B90]">35 preguntas es el estándar chileno[cite: 3].</span>
+              <span className="text-[10px] text-[#6C7B90]">35 preguntas es el estándar chileno.</span>
             </div>
 
             <div>
@@ -573,7 +570,7 @@ export default function AdminPage() {
         </section>
       )}
 
-      {/* TAB 3: EXPLORADOR DEL BANCO DE PREGUNTAS */}
+      {/* PESTAÑA 3: BANCO DE PREGUNTAS */}
       {activeTab === 'questions' && (
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#D7E4F6] bg-white p-3.5 shadow-xs">

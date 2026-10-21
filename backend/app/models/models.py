@@ -15,7 +15,8 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     license_class = Column(String(20), default="Clase B")
     is_admin = Column(Boolean, default=False)
-    is_premium = Column(Boolean, default=True)  # En el MVP todos tienen acceso completo
+    is_premium = Column(Boolean, default=False)
+    premium_until = Column(DateTime(timezone=True), nullable=True)  # <-- NUEVO CAMPO
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
     results = relationship("TestResult", back_populates="user", cascade="all, delete-orphan")
