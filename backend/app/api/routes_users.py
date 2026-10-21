@@ -123,3 +123,67 @@ async def get_my_test_result_detail(
         "fecha": r.fecha,
         "detalles": r.detalles,
     }
+
+
+
+
+@router.get("/me/stats/avanzadas")
+async def get_my_advanced_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = (
+        select(TestResult)
+        .where(TestResult.user_id == current_user.id)
+        .order_by(TestResult.fecha.desc())
+    )
+    result = await db.execute(stmt)
+    history = result.scalars().all()
+
+    total_tests = len(history)
+    if total_tests == 0:
+        return {
+            "summary": {
+                "total_tests": 0,
+                "aprobados": 0,
+                "promedio_puntaje": 0,
+                "peor_categoria": None,
+            },
+            "categorias": [],
+        }
+
+    aprobados = sum(1 for r in history if (r.total_preguntas - r.correctas) <= 2)
+    promedio_puntaje = round(sum(r.puntaje for r in history) / total_tests)
+
+    cat_totals = {}
+    for r in history:
+        for item in (r.detalles or []):
+            cat = item.get("categoria") or "General"
+            if cat not in cat_totals:
+                cat_totals[cat] = {"correctas": 0, "total": 0}
+            cat_totals[cat]["total"] += 1
+            if item.get("is_correct"):
+                cat_totals[cat]["correctas"] += 1
+
+    categorias_list = []
+    for cat, counts in cat_totals.items():
+        porcentaje = round((counts["correctas"] / counts["total"]) * 100) if counts["total"] > 0 else 0
+        categorias_list.append({
+            "categoria": cat,
+            "correctas": counts["correctas"],
+            "total": counts["total"],
+            "porcentaje": porcentaje,
+        })
+
+    categorias_list.sort(key=lambda x: x["porcentaje"])
+    peor_categoria = categorias_list[0]["categoria"] if categorias_list else None
+
+    return {
+        "summary": {
+            "total_tests": total_tests,
+            "aprobados": aprobados,
+            "promedio_puntaje": promedio_puntaje,
+            "peor_categoria": peor_categoria,
+        },
+        "categorias": categorias_list,
+    }

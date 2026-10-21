@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, CheckCircle2, Play, Trophy } from 'lucide-react';
+import {
+  BookOpen,
+  CheckCircle2,
+  Play,
+  Trophy,
+  BarChart3,
+  AlertTriangle,
+  Award,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api';
 
@@ -10,6 +18,7 @@ export default function HomePage() {
   const { user, licenseClass, setLicenseClass } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,9 +27,15 @@ export default function HomePage() {
     setLoading(true);
     setError('');
 
-    apiFetch(`/tests/?clase_licencia=${encodeURIComponent(licenseClass)}`)
-      .then((data) => {
-        if (active) setExams(data);
+    Promise.all([
+      apiFetch(`/tests/?clase_licencia=${encodeURIComponent(licenseClass)}`),
+      apiFetch('/users/me/stats/avanzadas'),
+    ])
+      .then(([examsData, statsData]) => {
+        if (active) {
+          setExams(examsData);
+          setStats(statsData);
+        }
       })
       .catch((err) => {
         if (active) setError(err.message);
@@ -33,6 +48,9 @@ export default function HomePage() {
       active = false;
     };
   }, [licenseClass]);
+
+  const summary = stats?.summary;
+  const categorias = stats?.categorias || [];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pt-6">
@@ -78,6 +96,79 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {/* Resumen de Estadísticas */}
+      {summary && summary.total_tests > 0 && (
+        <section className="rounded-2xl border border-[#DDE7F2] bg-white p-5 shadow-xs">
+          <div className="mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-[#2457D6]" />
+            <h2 className="text-base font-black text-[#173B63]">Tu Rendimiento Acumulado</h2>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-[#F4F7FB] p-3.5">
+              <p className="text-xs font-bold text-[#647084]">Ensayos Realizados</p>
+              <p className="mt-1 text-2xl font-black text-[#173B63]">{summary.total_tests}</p>
+            </div>
+
+            <div className="rounded-xl bg-[#E7F8EF] p-3.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-[#148449]">Exámenes Aprobados</p>
+                <Trophy className="h-4 w-4 text-[#148449]" />
+              </div>
+              <p className="mt-1 text-2xl font-black text-[#148449]">{summary.aprobados}</p>
+            </div>
+
+            <div className="rounded-xl bg-[#EAF1FF] p-3.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-[#2457D6]">Promedio de Acierto</p>
+                <Award className="h-4 w-4 text-[#2457D6]" />
+              </div>
+              <p className="mt-1 text-2xl font-black text-[#2457D6]">{summary.promedio_puntaje}%</p>
+            </div>
+          </div>
+
+          {summary.peor_categoria && (
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <span className="font-black">Tema recomendado para repasar: </span>
+                <span>{summary.peor_categoria}</span>
+              </div>
+            </div>
+          )}
+
+          {categorias.length > 0 && (
+            <div className="mt-4 space-y-2.5 border-t border-slate-100 pt-4">
+              <p className="text-xs font-black uppercase tracking-wider text-[#6C7B90]">
+                Dominio por Categoría
+              </p>
+              {categorias.map((cat) => (
+                <div key={cat.categoria} className="space-y-1">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-[#173B63]">{cat.categoria}</span>
+                    <span className="text-[#647084]">
+                      {cat.correctas}/{cat.total} ({cat.porcentaje}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[#E7EDF7]">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        cat.porcentaje >= 80
+                          ? 'bg-[#14966F]'
+                          : cat.porcentaje >= 50
+                            ? 'bg-amber-500'
+                            : 'bg-[#D92D20]'
+                      }`}
+                      style={{ width: `${cat.porcentaje}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Listado de Exámenes */}
       <section>
