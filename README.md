@@ -50,6 +50,18 @@ VialApp-urfu/
 
 ---
 
+
+## React Component Refactoring
+
+The frontend has been divided into smaller reusable components to reduce duplicated code and simplify maintenance.
+
+- **Common components:** Shared form inputs and license class selectors.
+- **Exam components:** Reusable exam cards, question cards, navigation and result views.
+- **Custom hooks:** Shared logic for creating quick exams.
+
+Existing authentication, exam functionality and bilingual support remain unchanged.
+
+
 ## Quick Start (Docker)
 
 ### 1. Clone the repository

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import TextInput from '../components/common/TextInput';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -60,33 +61,23 @@ export default function LoginPage() {
       )}
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-[#173B63]">
-            {tr('Correo o Usuario', 'Email or Username')}
-          </label>
-          <input
-            type="text"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="demo@vialapp.cl"
-            className="mt-1 w-full rounded-xl border border-[#C7D8FA] px-3.5 py-2.5 text-sm focus:border-[#2457D6] focus:outline-none"
-          />
-        </div>
+       
 
-        <div>
-          <label className="block text-xs font-bold text-[#173B63]">
-            {tr('Contraseña', 'Password')}
-          </label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            className="mt-1 w-full rounded-xl border border-[#C7D8FA] px-3.5 py-2.5 text-sm focus:border-[#2457D6] focus:outline-none"
-          />
-        </div>
+
+      <TextInput
+        label={tr('Correo o Usuario', 'Email or Username')}
+        value={email}
+        onChange={setEmail}
+        placeholder="demo@vialapp.cl"
+      />
+
+      <TextInput
+        label={tr('Contraseña', 'Password')}
+        type="password"
+        value={password}
+        onChange={setPassword}
+        placeholder="••••••••"
+      />
 
         <button
           type="submit"

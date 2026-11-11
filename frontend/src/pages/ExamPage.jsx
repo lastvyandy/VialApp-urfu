@@ -3,24 +3,23 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
-  XCircle,
   Flag,
-  Lightbulb,
-  RotateCcw,
   Clock,
   AlertTriangle,
   Repeat,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { apiFetch } from '../api';
+import ExamNavigator from '../components/exams/ExamNavigator';
+import QuestionCard from '../components/exams/QuestionCard';
+import ExamResult from '../components/exams/ExamResult';
 
 export default function ExamPage() {
   const { testId } = useParams();
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'study' ? 'study' : 'exam';
   const navigate = useNavigate();
-  const { tr, trCategory, trLicense, trExamName } = useLanguage();
+  const { tr } = useLanguage();
 
   const [exam, setExam] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -40,6 +39,7 @@ export default function ExamPage() {
   const [timeLeft, setTimeLeft] = useState(45 * 60);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const timerRef = useRef(null);
+  
 
   useEffect(() => {
     setLoading(true);
@@ -187,98 +187,18 @@ export default function ExamPage() {
   };
 
   if (resultData && !reviewMode) {
-    const passed = resultData.aprobado;
-    const totalErrors = resultData.total_preguntas - resultData.correctas;
-
     return (
-      <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-[#D7E4F6] bg-white p-6 sm:p-8 shadow-xs">
-        <div
-          className={`rounded-2xl p-6 text-center ${
-            passed ? 'bg-[#E7F8EF] text-[#148449]' : 'bg-amber-50 text-amber-800'
-          }`}
-        >
-          <p className="text-xs font-black uppercase tracking-wider">
-            {trExamName(exam.nombre)} ({trLicense(exam.clase_licencia)})
-          </p>
-          <h1 className="mt-1 text-3xl font-black">
-            {passed
-              ? tr('¡Examen Aprobado! 🎉', 'Exam Passed! 🎉')
-              : tr('Examen Reprobado 📚', 'Exam Failed 📚')}
-          </h1>
-          <p className="mt-2 text-sm font-bold">
-            {passed
-              ? tr(
-                  'Has demostrado dominio para aprobar el examen teórico de CONASET.',
-                  'You have demonstrated sufficient mastery to pass the CONASET theory exam.'
-                )
-              : tr(
-                  'Superaste el límite de errores permitidos para aprobar.',
-                  'You exceeded the maximum number of errors allowed to pass.'
-                )}
-          </p>
-        </div>
-
-        <div className="mt-6 grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">{tr('Correctas', 'Correct')}</p>
-            <p className="text-2xl font-black text-[#14966F]">{resultData.correctas}</p>
-          </div>
-          <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">{tr('Incorrectas', 'Incorrect')}</p>
-            <p className="text-2xl font-black text-[#D92D20]">{totalErrors}</p>
-          </div>
-          <div className="rounded-2xl bg-[#F4F7FB] p-4">
-            <p className="text-xs font-bold text-[#647084]">{tr('Puntaje Final', 'Final Score')}</p>
-            <p className="text-2xl font-black text-[#2457D6]">{resultData.puntaje}%</p>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-2.5">
-          {totalErrors > 0 && (
-            <button
-              type="button"
-              onClick={startErrorPractice}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#14966F] py-3.5 text-xs font-black text-white shadow-md hover:bg-[#0F6B50] transition"
-            >
-              <Repeat className="h-4 w-4" />
-              <span>
-                {tr(
-                  `Practicar solo mis ${totalErrors} fallos (Modo Refuerzo)`,
-                  `Practice only my ${totalErrors} mistakes (Reinforcement Mode)`
-                )}
-              </span>
-            </button>
-          )}
-
-          <div className="flex flex-wrap gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentIndex(0);
-                setReviewMode(true);
-              }}
-              className="flex-1 rounded-xl bg-[#2457D6] py-3 text-xs font-black text-white hover:bg-blue-700 transition"
-            >
-              {tr('Revisar Corrección Detallada', 'Review Detailed Correction')}
-            </button>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#C7D8FA] px-4 py-3 text-xs font-black text-[#2457D6] hover:bg-[#F4F7FF] transition"
-            >
-              <RotateCcw className="h-4 w-4" />
-              {tr('Reintentar Todo', 'Retry Full Exam')}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/examenes')}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-xs font-black text-[#516B88] hover:bg-slate-50 transition"
-            >
-              {tr('Lista de Exámenes', 'Back to Exams')}
-            </button>
-          </div>
-        </div>
-      </div>
+      <ExamResult
+        exam={exam}
+        resultData={resultData}
+        onPracticeMistakes={startErrorPractice}
+        onReview={() => {
+          setCurrentIndex(0);
+          setReviewMode(true);
+        }}
+        onRetry={handleReset}
+        onBackToExams={() => navigate('/examenes')}
+      />
     );
   }
 
@@ -386,71 +306,15 @@ export default function ExamPage() {
 
       {/* Tarjeta de Pregunta */}
       <div className="rounded-3xl border border-[#D8E1EF] bg-white p-6 sm:p-8 shadow-xs">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="rounded-md bg-[#F4F7FB] px-2.5 py-1 text-[11px] font-bold text-[#647084]">
-            {trCategory(currentQ.categoria)}
-          </span>
-          {currentQ.is_multiple && (
-            <span className="rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-              {tr('Selección Múltiple', 'Multiple Choice')}
-            </span>
-          )}
-        </div>
+        
 
-        <h2 className="text-lg sm:text-xl font-black leading-snug text-[#172033]">
-          {currentQ.texto}
-        </h2>
+      <QuestionCard
+        question={currentQ}
+        selected={selected}
+        showImmediateFeedback={showImmediateFeedback}
+        onSelectOption={toggleOption}
+      />
 
-        {/* Alternativas */}
-        <div className="mt-6 space-y-3">
-          {Object.entries(currentQ.alternativas).map(([letter, text]) => {
-            const isSelected = selected.includes(letter);
-            const isCorrectOption = (currentQ.correct_answers || []).includes(letter);
-
-            let style = 'border-[#D8E1EF] bg-white hover:border-[#2457D6] hover:bg-[#F9FBFF]';
-            if (showImmediateFeedback) {
-              if (isCorrectOption) {
-                style = 'border-[#14966F] bg-[#EAF8F1] text-[#0F6B50]';
-              } else if (isSelected) {
-                style = 'border-[#D92D20] bg-[#FFF1F0] text-[#B42318]';
-              }
-            } else if (isSelected) {
-              style = 'border-[#2457D6] bg-[#EAF1FF] text-[#173B8F] shadow-xs';
-            }
-
-            return (
-              <button
-                key={letter}
-                type="button"
-                onClick={() => toggleOption(letter)}
-                className={`flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left text-sm transition ${style}`}
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border font-black text-xs">
-                  {letter}
-                </span>
-                <span className="flex-1 font-medium leading-relaxed">{text}</span>
-                {showImmediateFeedback && isCorrectOption && (
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-[#14966F]" />
-                )}
-                {showImmediateFeedback && !isCorrectOption && isSelected && (
-                  <XCircle className="h-5 w-5 shrink-0 text-[#D92D20]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {showImmediateFeedback && currentQ.explicacion && (
-          <div className="mt-6 flex gap-3 rounded-2xl border border-blue-200 bg-[#F4F7FF] p-4 text-xs text-[#173B63]">
-            <Lightbulb className="h-5 w-5 shrink-0 text-[#2457D6]" />
-            <div>
-              <p className="font-black text-[#2457D6]">
-                {tr('Explicación Oficial:', 'Official Explanation:')}
-              </p>
-              <p className="mt-0.5 leading-relaxed">{currentQ.explicacion}</p>
-            </div>
-          </div>
-        )}
 
         {/* Controles */}
         <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-4">
@@ -528,29 +392,15 @@ export default function ExamPage() {
         </div>
       </div>
 
-      {/* Grilla */}
-      <div className="mt-4 flex flex-wrap gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white p-4 shadow-xs">
-        {questions.map((q, idx) => {
-          const hasAns = (answers[q.id] || []).length > 0;
-          const isCurrent = idx === currentIndex;
-          return (
-            <button
-              key={q.id}
-              type="button"
-              onClick={() => setCurrentIndex(idx)}
-              className={`h-8 w-8 rounded-xl text-xs font-black transition ${
-                isCurrent
-                  ? 'bg-[#172033] text-white shadow-xs'
-                  : hasAns
-                    ? 'border border-[#2457D6] bg-[#EAF1FF] text-[#2457D6]'
-                    : 'bg-[#F4F7FB] text-[#647084] hover:bg-slate-200'
-              }`}
-            >
-              {idx + 1}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+      
+    {/* Grilla */}
+    <ExamNavigator
+      questions={questions}
+      answers={answers}
+      currentIndex={currentIndex}
+      onSelectQuestion={setCurrentIndex}
+    />
+
+        </div>
   );
 }

@@ -14,8 +14,9 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { apiFetch } from '../api';
+import LicenseClassSelector from '../components/common/LicenseClassSelector';
+import useQuickExam from '../hooks/useQuickExam';
 
-const LICENSE_CLASSES = ['Clase B', 'Clase C'];
 
 export default function HomePage() {
   const { user, licenseClass, setLicenseClass } = useAuth();
@@ -23,7 +24,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [recentExams, setRecentExams] = useState([]);
-  const [startingExpress, setStartingExpress] = useState(false);
+  const { startingExpress, handleStartExpress } = useQuickExam(licenseClass);
 
   useEffect(() => {
     let active = true;
@@ -45,19 +46,7 @@ export default function HomePage() {
     };
   }, [licenseClass]);
 
-  const handleStartExpress = async () => {
-    setStartingExpress(true);
-    try {
-      const res = await apiFetch(`/tests/quick?clase_licencia=${encodeURIComponent(licenseClass)}`, {
-        method: 'POST',
-      });
-      navigate(`/test/${res.id}?mode=exam`);
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    } finally {
-      setStartingExpress(false);
-    }
-  };
+  
 
   const summary = stats?.summary;
   const categorias = stats?.categorias || [];
@@ -121,40 +110,11 @@ export default function HomePage() {
           </div>
 
           {/* Selector de Licencia */}
-          <div className="rounded-2xl border border-[#D7E4F6] bg-white/90 p-5 shadow-xs backdrop-blur-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#6C7B90]">
-                {tr('Tu Licencia Objetivo', 'Target License Class')}
-              </span>
-              <span className="rounded-md bg-[#EAF1FF] px-2 py-0.5 text-xs font-black text-[#2457D6]">
-                {trLicense(licenseClass)}
-              </span>
-            </div>
-
-            <p className="text-xs text-[#516B88] mb-4">
-              {tr(
-                'Los ensayos se adaptarán automáticamente a los contenidos y exigencias de tu clase.',
-                'Mock exams automatically adapt to the curriculum and requirements of your selected class.'
-              )}
-            </p>
-
-            <div className="grid grid-cols-2 gap-2">
-              {LICENSE_CLASSES.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setLicenseClass(option)}
-                  className={`rounded-xl border py-2.5 text-xs font-black transition ${
-                    licenseClass === option
-                      ? 'border-[#2457D6] bg-[#2457D6] text-white shadow-xs'
-                      : 'border-[#C7D8FA] bg-white text-[#2457D6] hover:bg-[#F4F7FF]'
-                  }`}
-                >
-                  {trLicense(option)}
-                </button>
-              ))}
-            </div>
-          </div>
+          <LicenseClassSelector
+            value={licenseClass}
+            onChange={setLicenseClass}
+            variant="card"
+          />
         </div>
       </section>
 
