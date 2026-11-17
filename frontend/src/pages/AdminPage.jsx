@@ -29,11 +29,10 @@ export default function AdminPage() {
   const [questionsList, setQuestionsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-
   const [userSearch, setUserSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [planFilter, setPlanFilter] = useState('all');
-
+  const [sortBy, setSortBy] = useState('newest');
   const [claseLicencia, setClaseLicencia] = useState('Clase B');
   const [categoria, setCategoria] = useState('Mixto');
   const [numQuestions, setNumQuestions] = useState(35);
@@ -83,18 +82,52 @@ export default function AdminPage() {
     }
   }, [activeTab, questionCategory, questionSearch]);
 
+  
   const handleUserUpdate = async (userId, payload, message) => {
     try {
       await apiFetch(`/admin/users/${userId}`, {
         method: 'PATCH',
         body: JSON.stringify(payload),
       });
+
+      const hasLocalChanges =
+        payload.license_class !== undefined ||
+        payload.is_admin !== undefined ||
+        payload.is_premium === false;
+
+      if (hasLocalChanges) {
+        setUsersList((previous) =>
+          previous.map((u) => {
+            if (u.id !== userId) return u;
+
+            return {
+              ...u,
+              ...(payload.license_class !== undefined
+                ? { license_class: payload.license_class }
+                : {}),
+              ...(payload.is_admin !== undefined
+                ? { is_admin: payload.is_admin }
+                : {}),
+              ...(payload.is_premium === false
+                ? {
+                    is_premium: false,
+                    premium_until: null,
+                    dias_restantes: 0,
+                  }
+                : {}),
+            };
+          })
+        );
+      }
+
       await loadAll();
+
       if (message) alert(message);
     } catch (err) {
       alert(`Error: ${err.message}`);
     }
   };
+
 
   const handleDeleteUser = async (userId, username) => {
     if (
@@ -136,18 +169,47 @@ export default function AdminPage() {
     }
   };
 
-  const filteredUsers = useMemo(() => {
-    return usersList.filter((u) => {
-      const q = userSearch.toLowerCase().trim();
-      const matchQuery =
-        !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-      const matchRole =
-        roleFilter === 'all' || (roleFilter === 'admin' ? u.is_admin : !u.is_admin);
-      const matchPlan =
-        planFilter === 'all' || (planFilter === 'premium' ? u.is_premium : !u.is_premium);
-      return matchQuery && matchRole && matchPlan;
-    });
-  }, [usersList, userSearch, roleFilter, planFilter]);
+  
+const filteredUsers = useMemo(() => {
+  const filtered = usersList.filter((u) => {
+    const q = userSearch.toLowerCase().trim();
+
+    const matchQuery =
+      !q ||
+      u.username.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q);
+
+    const matchRole =
+      roleFilter === 'all' ||
+      (roleFilter === 'admin' ? u.is_admin : !u.is_admin);
+
+    const matchPlan =
+      planFilter === 'all' ||
+      (planFilter === 'premium' ? u.is_premium : !u.is_premium);
+
+    return matchQuery && matchRole && matchPlan;
+  });
+
+  return filtered.sort((a, b) => {
+    if (sortBy === 'name-asc') {
+      return a.username.localeCompare(b.username);
+    }
+
+    if (sortBy === 'name-desc') {
+      return b.username.localeCompare(a.username);
+    }
+
+    const dateA = new Date(a.created_at ?? 0).getTime();
+    const dateB = new Date(b.created_at ?? 0).getTime();
+
+    if (sortBy === 'oldest') {
+      return dateA - dateB;
+    }
+
+    return dateB - dateA;
+  });
+}, [usersList, userSearch, roleFilter, planFilter, sortBy]);
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pt-6">
@@ -312,15 +374,22 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={planFilter}
                 onChange={(e) => setPlanFilter(e.target.value)}
                 className="rounded-xl border border-[#C7D8FA] px-3 py-2 text-xs font-bold text-[#173B63] focus:outline-none"
               >
-                <option value="all">{tr('Todos los planes', 'All plans')}</option>
-                <option value="premium">{tr('Solo Premium', 'Premium Only')}</option>
-                <option value="free">{tr('Solo Gratuitos', 'Free Only')}</option>
+                <option value="all">
+                  {tr('Todos los planes', 'All plans')}
+                </option>
+                <option value="premium">
+                  {tr('Solo Premium', 'Premium Only')}
+                </option>
+                <option value="free">
+                  {tr('Solo Gratuitos', 'Free Only')}
+                </option>
               </select>
 
               <select
@@ -328,12 +397,50 @@ export default function AdminPage() {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="rounded-xl border border-[#C7D8FA] px-3 py-2 text-xs font-bold text-[#173B63] focus:outline-none"
               >
-                <option value="all">{tr('Todos los roles', 'All roles')}</option>
-                <option value="admin">{tr('Administradores', 'Administrators')}</option>
-                <option value="student">{tr('Alumnos', 'Students')}</option>
+                <option value="all">
+                  {tr('Todos los roles', 'All roles')}
+                </option>
+                <option value="admin">
+                  {tr('Administradores', 'Administrators')}
+                </option>
+                <option value="student">
+                  {tr('Alumnos', 'Students')}
+                </option>
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-xl border border-[#C7D8FA] px-3 py-2 text-xs font-bold text-[#173B63] focus:outline-none"
+                aria-label={tr('Ordenar usuarios', 'Sort users')}
+              >
+                <option value="newest">
+                  {tr('Más recientes', 'Newest first')}
+                </option>
+                <option value="oldest">
+                  {tr('Más antiguos', 'Oldest first')}
+                </option>
+                <option value="name-asc">
+                  {tr('Nombre A-Z', 'Name A-Z')}
+                </option>
+                <option value="name-desc">
+                  {tr('Nombre Z-A', 'Name Z-A')}
+                </option>
               </select>
             </div>
+
           </div>
+
+          <div className="flex items-center justify-between rounded-xl bg-[#F4F7FB] px-4 py-2 text-xs font-bold text-[#516B88]">
+            <span>
+              {tr('Usuarios encontrados', 'Matching users')}: {filteredUsers.length}
+            </span>
+            <span>
+              {tr('Total de usuarios', 'Total users')}: {usersList.length}
+            </span>
+          </div>
+
+
 
           <div className="overflow-hidden rounded-2xl border border-[#DDE7F2] bg-white shadow-xs">
             <div className="overflow-x-auto">
@@ -351,6 +458,21 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
+
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="p-10 text-center text-sm font-semibold text-[#6C7B90]"
+                      >
+                        {tr(
+                          'No se encontraron usuarios con los filtros seleccionados.',
+                          'No users match the selected filters.'
+                        )}
+                      </td>
+                    </tr>
+                  )}
+
                   {filteredUsers.map((u) => {
                     const isPremium = u.is_premium;
                     const dateInput = u.premium_until ? u.premium_until.split('T')[0] : '';

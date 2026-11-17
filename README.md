@@ -62,6 +62,8 @@ The frontend has been divided into smaller reusable components to reduce duplica
 Existing authentication, exam functionality and bilingual support remain unchanged.
 
 
+The admin dashboard supports searching, filtering and sorting users by name or registration date. User changes are saved through the backend, while user counts and empty results are updated dynamically.
+
 ## Quick Start (Docker)
 
 ### 1. Clone the repository
