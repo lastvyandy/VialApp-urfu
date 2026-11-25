@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Car,
   FileText,
@@ -55,23 +55,21 @@ export default function Navbar() {
         {user ? (
           <div className="flex items-center gap-2 sm:gap-4">
             <nav className="flex items-center gap-1 sm:gap-1.5">
-              {navLinks.map(({ name, path, icon: Icon }) => {
-                const isActive = location.pathname === path;
-                return (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-black transition-all ${
-                      isActive
-                        ? 'bg-[#2457D6] text-white shadow-xs'
-                        : 'text-[#516B88] hover:bg-[#F4F7FF] hover:text-[#2457D6]'
-                    }`}
-                  >
-                    {Icon && <Icon className="h-3.5 w-3.5" />}
-                    <span>{name}</span>
-                  </Link>
-                );
-              })}
+              {navLinks.map(({ name, path, icon: Icon }) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  end
+                  className={({ isActive }) => `flex items-center gap-1.5 rounded-xl px-2.5 sm:px-3 py-1.5 text-xs font-black transition-all ${
+                    isActive
+                      ? 'bg-[#2457D6] text-white shadow-xs'
+                      : 'text-[#516B88] hover:bg-[#F4F7FF] hover:text-[#2457D6]'
+                  }`}
+                >
+                  {Icon && <Icon className="h-3.5 w-3.5" />}
+                  <span>{name}</span>
+                </NavLink>
+              ))}
 
               <Link
                 to="/planes"
